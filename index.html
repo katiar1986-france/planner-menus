@@ -302,6 +302,28 @@ body {
 .loader-text { font-size: 13px; color: var(--label3); font-weight: 600; }
 @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
 .anim { opacity:0; animation: fadeUp 0.4s ease forwards; }
+
+/* Photo edit action */
+.photo-edit-row { padding: 12px 20px 0; }
+.photo-edit-btn {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed rgba(0,0,0,0.18);
+  background: #FAFAF6;
+  font-family: var(--f); font-size: 13px; font-weight: 800;
+  color: var(--label2);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.12s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.photo-edit-btn:active { transform: scale(0.98); background: #F0F0E8; }
+.photo-edit-btn.busy { opacity: 0.6; cursor: progress; }
+.photo-edit-btn.ok { background: rgba(16,185,129,0.12); color: #059669; border-color: rgba(16,185,129,0.3); }
+.photo-edit-btn.err { background: rgba(239,68,68,0.12); color: #DC2626; border-color: rgba(239,68,68,0.3); }
+
+/* Recipe cards: prevent scroll-vs-tap ambiguity */
+.recipe-card, .cat-card { touch-action: manipulation; }
 </style>
 </head>
 <body>
@@ -399,7 +421,11 @@ const SM={
   Automne:{emoji:'🍂',color:'#d0521a',bg:'rgba(208,82,26,0.15)'},
 };
 
-function getPhoto(titre,types){
+function getPhoto(r){
+  // Si la recette a une photo perso uploadée, on l'utilise.
+  if(r && r.photo_url && typeof r.photo_url === 'string' && r.photo_url.trim()) return r.photo_url;
+  const titre = (r && r.titre) || '';
+  const types = (r && r.type_plat) || [];
   const t=titre.toLowerCase(),ty=(types||[]).join(' ').toLowerCase();
   const id=Math.abs([...titre].reduce((a,c)=>a+c.charCodeAt(0),0))%40+1;
   const seeds=[
@@ -462,7 +488,7 @@ function buildSemaines(){
   all.forEach(r=>(r.semaines||[]).forEach(sw=>{const n=WM[sw];if(n!=null){if(!bw[n])bw[n]=[];bw[n].push(r);}}));
 
   const heroItems=bw[cur]||[];
-  const heroPhoto=heroItems.length?getPhoto(heroItems[0].titre,heroItems[0].type_plat):`https://source.unsplash.com/800x400/?food,cooking&sig=99`;
+  const heroPhoto=heroItems.length?getPhoto(heroItems[0]):`https://source.unsplash.com/800x400/?food,cooking&sig=99`;
   const dateStr=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
 
   let html=`<div class="week-hero anim" style="animation-delay:0s">
@@ -497,7 +523,7 @@ function buildSemaines(){
     } else {
       html+=`<div class="cards-scroll anim" style="animation-delay:${delay}">`;
       items.forEach((r,j)=>{
-        const photo=getPhoto(r.titre,r.type_plat);
+        const photo=getPhoto(r);
         const ts=typeStyle(r.type_plat);
         const rs=r.regime?regimeStyle(r.regime):null;
         const av=avisIcon(r.avis);
@@ -536,7 +562,7 @@ function renderCat(items){
   const g=document.getElementById('cat-grid');
   if(!items.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#aaa;font-size:14px;font-weight:600">Aucune recette trouvée</div>';return;}
   g.innerHTML=items.map((r,i)=>{
-    const photo=getPhoto(r.titre,r.type_plat);
+    const photo=getPhoto(r);
     const ts=typeStyle(r.type_plat);
     const av=avisIcon(r.avis);
     return`<div class="cat-card" onclick="openSheet('${r.id}')">
@@ -574,7 +600,7 @@ function openSheet(id){
   const r=all.find(x=>String(x.id)===String(id));
   if(!r){console.warn('Recette non trouvée:',id);return;}
   currentSheetId=id;
-  const photo=getPhoto(r.titre,r.type_plat);
+  const photo=getPhoto(r);
   const ts=typeStyle(r.type_plat);
   const rs=r.regime?regimeStyle(r.regime):null;
   const av=avisIcon(r.avis);
@@ -582,10 +608,16 @@ function openSheet(id){
 
   document.getElementById('sheet-body').innerHTML=`
     <div class="sheet-photo-wrap">
-      <img class="sheet-photo" src="${photo}" loading="lazy" onerror="this.src='https://source.unsplash.com/800x400/?food&sig=0'">
+      <img class="sheet-photo" id="sheet-photo-img" src="${photo}" loading="lazy" onerror="this.src='https://source.unsplash.com/800x400/?food&sig=0'">
       <div class="sheet-photo-overlay"></div>
       <button class="sheet-close" onclick="closeSheet()">✕</button>
       <div class="sheet-photo-title">${r.titre}</div>
+    </div>
+    <div class="photo-edit-row">
+      <button class="photo-edit-btn" id="photo-edit-btn" type="button">
+        <span>📷</span><span id="photo-edit-label">${r.photo_url?'Remplacer la photo':'Ajouter une photo'}</span>
+      </button>
+      <input type="file" id="photo-input" accept="image/*" hidden>
     </div>
     <div class="sheet-meta">
       <span class="sheet-tag" style="background:${ts.bg};color:${ts.color}">${ts.label}</span>
@@ -613,6 +645,90 @@ function openSheet(id){
     sheet.classList.add('open');
     document.getElementById('overlay').classList.add('open');
   });
+
+  // Bind photo edit
+  const photoBtn=document.getElementById('photo-edit-btn');
+  const photoInput=document.getElementById('photo-input');
+  if(photoBtn && photoInput){
+    photoBtn.addEventListener('click', ()=>photoInput.click());
+    photoInput.addEventListener('change', async (e)=>{
+      const file=e.target.files && e.target.files[0];
+      if(!file) return;
+      await handlePhotoUpload(file, id, photoBtn);
+    });
+  }
+}
+
+async function handlePhotoUpload(file, recetteId, btn){
+  const label=document.getElementById('photo-edit-label');
+  const setLabel=(t)=>{ if(label) label.textContent=t; };
+  btn.classList.remove('ok','err');
+  btn.classList.add('busy');
+  btn.disabled=true;
+  setLabel('Upload en cours…');
+  try{
+    const url=await uploadRecettePhoto(file, recetteId);
+    // Update local state
+    const r=all.find(x=>String(x.id)===String(recetteId));
+    if(r) r.photo_url=url;
+    // Refresh the sheet photo immediately (with cache-bust)
+    const imgEl=document.getElementById('sheet-photo-img');
+    if(imgEl) imgEl.src=url;
+    // Refresh both screens
+    buildSemaines();
+    filterCat();
+    btn.classList.remove('busy');
+    btn.classList.add('ok');
+    setLabel('Photo mise à jour ✓');
+    setTimeout(()=>{
+      btn.classList.remove('ok');
+      btn.disabled=false;
+      setLabel('Remplacer la photo');
+    }, 1800);
+  } catch(err){
+    console.error('Upload photo:', err);
+    btn.classList.remove('busy');
+    btn.classList.add('err');
+    setLabel('Erreur — réessayer');
+    btn.disabled=false;
+  }
+}
+
+async function uploadRecettePhoto(file, recetteId){
+  const rawExt=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const ext=['jpg','jpeg','png','webp','gif','avif'].includes(rawExt)?(rawExt==='jpeg'?'jpg':rawExt):'jpg';
+  const path=`${recetteId}.${ext}`;
+  const uploadRes=await fetch(`${SB}/storage/v1/object/recettes-photos/${path}`,{
+    method:'POST',
+    headers:{
+      'apikey':KEY,
+      'Authorization':`Bearer ${KEY}`,
+      'Content-Type':file.type||`image/${ext==='jpg'?'jpeg':ext}`,
+      'x-upsert':'true',
+      'Cache-Control':'3600'
+    },
+    body:file
+  });
+  if(!uploadRes.ok){
+    const txt=await uploadRes.text().catch(()=>'');
+    throw new Error(`Storage ${uploadRes.status}: ${txt}`);
+  }
+  const publicUrl=`${SB}/storage/v1/object/public/recettes-photos/${path}?v=${Date.now()}`;
+  const patchRes=await fetch(`${SB}/rest/v1/recettes?id=eq.${recetteId}`,{
+    method:'PATCH',
+    headers:{
+      'apikey':KEY,
+      'Authorization':`Bearer ${KEY}`,
+      'Content-Type':'application/json',
+      'Prefer':'return=minimal'
+    },
+    body:JSON.stringify({photo_url:publicUrl})
+  });
+  if(!patchRes.ok){
+    const txt=await patchRes.text().catch(()=>'');
+    throw new Error(`DB ${patchRes.status}: ${txt}`);
+  }
+  return publicUrl;
 }
 
 function closeSheet(){
