@@ -11,7 +11,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
 :root {
   --f: 'Nunito', sans-serif;
   --bg: #F5F5F0;
@@ -21,17 +20,11 @@
   --label3: #888888;
   --sep: rgba(0,0,0,0.07);
   --orange: #FF6B2E;
-  --green: #2DB87A;
-  --blue: #3B82F6;
-  --purple: #8B5CF6;
-  --red: #EF4444;
-  --amber: #F59E0B;
   --radius: 18px;
   --radius-sm: 12px;
   --safe-top: env(safe-area-inset-top, 44px);
   --safe-bottom: env(safe-area-inset-bottom, 20px);
 }
-
 html { height: 100%; }
 body {
   font-family: var(--f);
@@ -43,138 +36,128 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  position: relative;
 }
 
 /* ── SCREENS ── */
 .screen { display: none; flex: 1; flex-direction: column; overflow: hidden; }
 .screen.active { display: flex; }
 
-/* ── BOTTOM NAV ── */
+/* ══════════════════════════
+   BOTTOM NAV
+══════════════════════════ */
 .bottom-nav {
   display: flex;
+  align-items: center;
   background: var(--white);
   border-top: 1px solid var(--sep);
-  padding: 10px 0 calc(var(--safe-bottom) + 2px);
+  height: calc(56px + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
   flex-shrink: 0;
   z-index: 50;
+  position: relative;
 }
 .nav-btn {
-  flex: 1; border: none; background: none;
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  cursor: pointer; padding: 4px 0;
+  flex: 1;
+  border: none; background: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; height: 100%;
+  cursor: pointer;
+  padding: 0;
   transition: transform 0.12s;
 }
-.nav-btn:active { transform: scale(0.92); }
-.nav-icon { font-size: 22px; line-height: 1; }
-.nav-label { font-size: 10px; font-weight: 700; color: var(--label3); letter-spacing: 0.02em; }
-.nav-btn.active .nav-label { color: var(--orange); }
+.nav-btn:active { transform: scale(0.9); }
+.nav-icon {
+  font-size: 24px; line-height: 1;
+  filter: grayscale(1) opacity(0.4);
+  transition: filter 0.15s;
+}
+.nav-label {
+  font-size: 10px; font-weight: 700;
+  color: var(--label3); letter-spacing: 0.02em;
+  transition: color 0.15s;
+}
 .nav-btn.active .nav-icon { filter: none; }
+.nav-btn.active .nav-label { color: var(--orange); }
 
-/* FAB */
-.fab-wrap { position: relative; }
+/* FAB centré */
+.nav-fab-wrap {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  height: 100%;
+  position: relative;
+}
 .fab {
-  width: 52px; height: 52px; border-radius: 50%;
+  width: 54px; height: 54px;
+  border-radius: 50%;
   background: var(--orange);
   border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px; color: white; font-weight: 300; line-height: 1;
-  box-shadow: 0 4px 16px rgba(255,107,46,0.4);
-  margin-top: -8px;
+  box-shadow: 0 4px 18px rgba(255,107,46,0.45);
+  position: relative;
+  top: -14px;
   transition: transform 0.12s, box-shadow 0.12s;
 }
-.fab:active { transform: scale(0.92); box-shadow: 0 2px 8px rgba(255,107,46,0.3); }
+.fab:active { transform: scale(0.91); box-shadow: 0 2px 8px rgba(255,107,46,0.3); }
+.fab svg { display: block; }
 
-/* ═══════════════════════════════
-   SCREEN 1 — SEMAINES
-═══════════════════════════════ */
+/* ══════════════════════════
+   SCREEN SEMAINES
+══════════════════════════ */
 .semaines-scroll {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding: 0 0 16px;
+  padding-bottom: 16px;
 }
 .semaines-scroll::-webkit-scrollbar { display: none; }
 
-/* Hero header */
 .week-hero {
-  position: relative;
-  height: 220px;
-  overflow: hidden;
-  flex-shrink: 0;
+  position: relative; height: 220px; overflow: hidden; flex-shrink: 0;
 }
-.week-hero-img {
-  width: 100%; height: 100%; object-fit: cover;
-  transition: opacity 0.4s;
-}
+.week-hero-img { width: 100%; height: 100%; object-fit: cover; }
 .week-hero-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.65) 100%);
+  background: linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.68) 100%);
 }
 .week-hero-content {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 20px;
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 20px;
 }
 .week-hero-eyebrow {
   font-size: 11px; font-weight: 800; letter-spacing: 0.1em;
-  text-transform: uppercase; color: rgba(255,255,255,0.7);
-  margin-bottom: 4px;
+  text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 4px;
 }
-.week-hero-title {
-  font-size: 26px; font-weight: 900; color: white; line-height: 1.1;
-  letter-spacing: -0.3px;
-}
-.week-hero-sub {
-  font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 4px; font-weight: 600;
-}
+.week-hero-title { font-size: 26px; font-weight: 900; color: white; letter-spacing: -0.3px; line-height: 1.1; }
+.week-hero-sub { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 4px; font-weight: 600; }
 .saison-tag {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 4px 10px; border-radius: 20px;
   font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
   margin-top: 8px;
 }
-
-/* Section title */
 .section-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 20px 20px 10px;
 }
-.section-title {
-  font-size: 20px; font-weight: 900; letter-spacing: -0.3px;
-}
-.section-badge {
-  font-size: 11px; font-weight: 700;
-  padding: 4px 10px; border-radius: 10px;
-}
+.section-title { font-size: 20px; font-weight: 900; letter-spacing: -0.3px; }
+.section-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 10px; }
 
-/* Recette cards — horizontal scroll */
 .cards-scroll {
   display: flex; gap: 14px;
   padding: 0 20px 4px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
 }
 .cards-scroll::-webkit-scrollbar { display: none; }
 
 .recipe-card {
   flex-shrink: 0; width: 200px;
-  background: var(--white);
-  border-radius: var(--radius);
-  overflow: hidden;
+  background: var(--white); border-radius: var(--radius); overflow: hidden;
   box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04);
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
   position: relative;
 }
-.recipe-card:active { transform: scale(0.97); box-shadow: 0 1px 6px rgba(0,0,0,0.06); }
+.recipe-card:active { transform: scale(0.97); }
 .recipe-card.full { width: calc(100vw - 40px); max-width: 390px; }
-
 .card-img-wrap { position: relative; height: 130px; overflow: hidden; }
-.card-img {
-  width: 100%; height: 100%; object-fit: cover;
-  background: #eee;
-  transition: opacity 0.3s;
-}
+.card-img { width: 100%; height: 100%; object-fit: cover; background: #eee; }
 .card-img-overlay {
   position: absolute; inset: 0;
   background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.18) 100%);
@@ -182,49 +165,33 @@ body {
 .card-avis {
   position: absolute; top: 10px; right: 10px;
   width: 28px; height: 28px; border-radius: 50%;
-  background: white;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  background: white; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 .card-type-badge {
   position: absolute; bottom: 10px; left: 10px;
   padding: 3px 8px; border-radius: 8px;
-  font-size: 10px; font-weight: 800;
-  text-transform: uppercase; letter-spacing: 0.05em;
+  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
 }
-
 .card-body { padding: 12px 14px 14px; }
 .card-title {
-  font-size: 14px; font-weight: 800; line-height: 1.3;
-  letter-spacing: -0.1px;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-size: 14px; font-weight: 800; line-height: 1.3; letter-spacing: -0.1px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   margin-bottom: 6px;
 }
-.card-meta {
-  display: flex; align-items: center; gap: 6px;
-  flex-wrap: wrap;
-}
-.card-tag {
-  font-size: 11px; font-weight: 700;
-  padding: 2px 8px; border-radius: 6px;
-}
+.card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.card-tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
 
-/* ═══════════════════════════════
-   SCREEN 2 — CATALOGUE
-═══════════════════════════════ */
+/* ══════════════════════════
+   SCREEN CATALOGUE
+══════════════════════════ */
 .catalogue-header {
   background: var(--white);
   padding: calc(var(--safe-top) + 12px) 20px 12px;
-  border-bottom: 1px solid var(--sep);
-  flex-shrink: 0;
+  border-bottom: 1px solid var(--sep); flex-shrink: 0;
 }
 .catalogue-title { font-size: 26px; font-weight: 900; letter-spacing: -0.4px; margin-bottom: 12px; }
-.search-row { display: flex; gap: 10px; align-items: center; }
-.search-input-wrap {
-  flex: 1; position: relative;
-}
+.search-input-wrap { position: relative; }
 .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; }
 .search-input {
   width: 100%; padding: 11px 12px 11px 36px;
@@ -234,7 +201,6 @@ body {
   outline: none; color: var(--label);
 }
 .search-input::placeholder { color: var(--label3); font-weight: 500; }
-
 .filter-row {
   display: flex; gap: 8px; padding: 12px 20px 0;
   overflow-x: auto; scrollbar-width: none;
@@ -242,28 +208,20 @@ body {
 .filter-row::-webkit-scrollbar { display: none; }
 .filter-chip {
   flex-shrink: 0; padding: 7px 14px; border-radius: 20px;
-  border: 2px solid transparent;
-  background: #F0F0F0;
+  border: none; background: #F0F0F0;
   font-family: var(--f); font-size: 12px; font-weight: 800;
-  cursor: pointer; transition: all 0.15s;
-  white-space: nowrap; letter-spacing: 0.01em;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
 }
 .filter-chip.active { background: var(--label); color: white; }
-
 .catalogue-scroll {
-  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  padding: 16px;
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px;
 }
 .catalogue-scroll::-webkit-scrollbar { display: none; }
 .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-
 .cat-card {
-  background: var(--white);
-  border-radius: var(--radius);
-  overflow: hidden;
+  background: var(--white); border-radius: var(--radius); overflow: hidden;
   box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-  cursor: pointer;
-  transition: transform 0.12s;
+  cursor: pointer; transition: transform 0.12s;
 }
 .cat-card:active { transform: scale(0.96); }
 .cat-img-wrap { position: relative; height: 110px; overflow: hidden; }
@@ -278,68 +236,77 @@ body {
 .cat-name { font-size: 13px; font-weight: 800; line-height: 1.3; margin-bottom: 4px; letter-spacing: -0.1px; }
 .cat-sub { font-size: 11px; color: var(--label3); font-weight: 600; }
 
-/* ═══════════════════════════════
+/* ══════════════════════════
    BOTTOM SHEET
-═══════════════════════════════ */
+══════════════════════════ */
 .overlay {
   display: none; position: fixed; inset: 0; z-index: 100;
-  background: rgba(0,0,0,0);
-  transition: background 0.28s;
+  background: rgba(0,0,0,0); transition: background 0.28s;
 }
 .overlay.open { display: block; background: rgba(0,0,0,0.45); }
+
 .sheet {
-  position: fixed; bottom: 0; left: 50%; z-index: 101;
+  position: fixed; bottom: 0; left: 50%;
   transform: translateX(-50%) translateY(102%);
   width: 100%; max-width: 430px;
   background: var(--white);
   border-radius: 28px 28px 0 0;
-  max-height: 90dvh; overflow-y: auto;
+  max-height: 92dvh; overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  z-index: 101;
   transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
+  will-change: transform;
 }
 .sheet.open { transform: translateX(-50%) translateY(0); }
 .sheet::-webkit-scrollbar { display: none; }
 
-.sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: #E0E0E0; margin: 12px auto 0; }
-
-.sheet-photo { width: 100%; height: 220px; object-fit: cover; background: #eee; }
-.sheet-photo-wrap { position: relative; }
+.sheet-handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: #E0E0E0; margin: 12px auto 0;
+  flex-shrink: 0;
+}
+.sheet-photo-wrap { position: relative; margin-top: 12px; }
+.sheet-photo { width: 100%; height: 240px; object-fit: cover; }
 .sheet-photo-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.5) 100%);
+  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.6) 100%);
+}
+.sheet-close {
+  position: absolute; top: 12px; right: 14px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(0,0,0,0.35); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 15px; font-weight: 700;
+  backdrop-filter: blur(4px);
 }
 .sheet-photo-title {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 20px;
-  font-size: 22px; font-weight: 900; color: white; letter-spacing: -0.3px; line-height: 1.2;
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 20px;
+  font-size: 22px; font-weight: 900; color: white;
+  letter-spacing: -0.3px; line-height: 1.2;
 }
-
-.sheet-meta { padding: 16px 20px 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.sheet-meta { padding: 16px 20px 4px; display: flex; flex-wrap: wrap; gap: 8px; }
 .sheet-tag { padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; }
-
 .sheet-section { padding: 16px 20px; border-top: 1px solid var(--sep); }
 .sheet-section-label {
-  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--label3); margin-bottom: 10px;
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--label3); margin-bottom: 10px;
 }
 .sheet-section-text { font-size: 14px; line-height: 1.7; color: var(--label2); font-weight: 500; white-space: pre-line; }
-.sheet-semaines { font-size: 13px; color: var(--label3); font-weight: 600; }
-.sheet-pb { height: calc(var(--safe-bottom) + 20px); }
+.sheet-semaines { font-size: 13px; color: var(--label3); font-weight: 600; line-height: 1.6; }
+.sheet-pb { height: calc(var(--safe-bottom) + 24px); }
 
 /* LOADER */
 .loader-wrap { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 60px 20px; flex-direction: column; }
 .loader { width: 24px; height: 24px; border: 2.5px solid #E0E0E0; border-top-color: var(--orange); border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loader-text { font-size: 13px; color: var(--label3); font-weight: 600; }
-
-/* ANIMATIONS */
 @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
-.anim { opacity: 0; animation: fadeUp 0.4s ease forwards; }
+.anim { opacity:0; animation: fadeUp 0.4s ease forwards; }
 </style>
 </head>
 <body>
 
-<!-- ══ SCREEN: SEMAINES ══ -->
+<!-- SCREEN SEMAINES -->
 <div class="screen active" id="screen-semaines">
   <div class="semaines-scroll" id="semaines-scroll">
     <div class="loader-wrap" id="loader-s">
@@ -350,18 +317,16 @@ body {
   </div>
 </div>
 
-<!-- ══ SCREEN: CATALOGUE ══ -->
+<!-- SCREEN CATALOGUE -->
 <div class="screen" id="screen-catalogue">
   <div class="catalogue-header">
     <div class="catalogue-title">Mes Recettes</div>
-    <div class="search-row">
-      <div class="search-input-wrap">
-        <span class="search-icon">🔍</span>
-        <input class="search-input" id="search" placeholder="Rechercher une recette…" oninput="filterCat()">
-      </div>
+    <div class="search-input-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="search" placeholder="Rechercher une recette…" oninput="filterCat()">
     </div>
   </div>
-  <div class="filter-row" id="filter-row">
+  <div class="filter-row">
     <button class="filter-chip active" onclick="setFilter('',this)">Tout</button>
     <button class="filter-chip" onclick="setFilter('❤️',this)">❤️ Coups de cœur</button>
     <button class="filter-chip" onclick="setFilter('Végé',this)">🌿 Végé</button>
@@ -379,23 +344,27 @@ body {
   </div>
 </div>
 
-<!-- ══ BOTTOM NAV ══ -->
+<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <button class="nav-btn active" id="btn-semaines" onclick="goTo('semaines')">
     <span class="nav-icon">📅</span>
     <span class="nav-label">Semaines</span>
   </button>
-  <button class="nav-btn fab-wrap" onclick="openAddRecette()">
-    <button class="fab">+</button>
-    <span class="nav-label" style="margin-top:12px">Ajouter</span>
-  </button>
+  <div class="nav-fab-wrap">
+    <button class="fab" onclick="openAddRecette()">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+        <line x1="13" y1="5" x2="13" y2="21" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="5" y1="13" x2="21" y2="13" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
   <button class="nav-btn" id="btn-catalogue" onclick="goTo('catalogue')">
     <span class="nav-icon">📖</span>
     <span class="nav-label">Recettes</span>
   </button>
 </nav>
 
-<!-- ══ BOTTOM SHEET ══ -->
+<!-- OVERLAY + SHEET -->
 <div class="overlay" id="overlay" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet">
   <div class="sheet-handle"></div>
@@ -403,10 +372,9 @@ body {
 </div>
 
 <script>
-const SB = 'https://okrkucmfyycaevezmuzo.supabase.co';
+const SB  = 'https://okrkucmfyycaevezmuzo.supabase.co';
 const KEY = 'sb_publishable_F6CVp39DGvvXpLDekarKQw_8AtDqDvB';
 
-// ── Week mapping
 const WM = {'☃️ Semaine 01':1,'⛸️ Semaine 02':2,'❄️ Semaine 03':3,'🧣Semaine 04':4,'🗻 Semaine 05':5,'🌨️ Semaine 06':6,'💨Semaine 07':7,'🐻‍❄️ Semaine 08':8,'🧊Semaine 09':9,'⛷️Semaine 10':10,'🛷Semaine 11':11,'🌤️ Semaine 12':12,'Semaine 13':13,'Semaine 14':14,'Semaine 15':15,'Semaine 16':16,'Semaine 17':17,'Semaine 18':18,'Semaine 19':19,'Semaine 20':20,'Semaine 21':21,'☀️ Semaine 22':22,'🌞 Semaine 23':23,'🏖️ Semaine 24':24,'🌴 Semaine 25':25,'🌊 Semaine 26':26,'🍉 Semaine 27':27,'🌺 Semaine 28':28,'🌻 Semaine 29':29,'🦋 Semaine 30':30,'🐝 Semaine 31':31,'🌸 Semaine 32':32,'🎆 Semaine 33':33,'🌅 Semaine 34':34,'🍓 Semaine 35':35,'🌞 Semaine 36':36,'🌤️ Semaine 37':37,'⛅ Semaine 38':38,'🌥️ Semaine 39':39,'🌧️ Semaine 40':40,'🍂 Semaine 41':41,'🍁 Semaine 42':42,'🍂 Semaine 43':43,'🍁 Semaine 44':44,'🐿️ Semaine 45':45,'🌬️ Semaine 46':46,'🏮 Semaine 47':47,'🍄‍🟫 Semaine 48':48,'🦌 Semaine 49':49,'🧣 Semaine 50':50,'🌲 Semaine 51':51,'🎅 Semaine 52':52};
 const WL = Object.fromEntries(Object.entries(WM).map(([k,v])=>[v,k]));
 
@@ -416,140 +384,124 @@ function isoWeek(d) {
   const w1 = new Date(dt.getFullYear(),0,4);
   return 1 + Math.round(((dt-w1)/86400000 - 3 + (w1.getDay()+6)%7)/7);
 }
-function ww(w) { return w<1?52+w:w>52?w-52:w; }
-function saison(w) {
-  if(w>=1&&w<=12) return 'Hiver';
-  if(w>=13&&w<=21) return 'Printemps';
-  if(w>=22&&w<=42) return 'Été';
-  if(w>=43&&w<=50) return 'Automne';
-  return 'Hiver';
+function ww(w){return w<1?52+w:w>52?w-52:w;}
+function saison(w){
+  if(w>=1&&w<=12)return'Hiver';
+  if(w>=13&&w<=21)return'Printemps';
+  if(w>=22&&w<=42)return'Été';
+  if(w>=43&&w<=50)return'Automne';
+  return'Hiver';
 }
-const SM = {
-  Hiver:   {emoji:'❄️', color:'#0071E3', bg:'rgba(0,113,227,0.12)', textColor:'#0071E3'},
-  Printemps:{emoji:'🌸', color:'#2DB87A', bg:'rgba(45,184,122,0.12)', textColor:'#1a9962'},
-  Été:     {emoji:'☀️', color:'#F59E0B', bg:'rgba(245,158,11,0.12)', textColor:'#c47c00'},
-  Automne: {emoji:'🍂', color:'#FF6B2E', bg:'rgba(255,107,46,0.12)', textColor:'#d0521a'},
+const SM={
+  Hiver:{emoji:'❄️',color:'#0071E3',bg:'rgba(0,113,227,0.15)'},
+  Printemps:{emoji:'🌸',color:'#1a9962',bg:'rgba(26,153,98,0.15)'},
+  Été:{emoji:'☀️',color:'#c47c00',bg:'rgba(196,124,0,0.15)'},
+  Automne:{emoji:'🍂',color:'#d0521a',bg:'rgba(208,82,26,0.15)'},
 };
 
-// ── Photo mapping by type/keywords
-function getPhoto(titre, types) {
-  const t = titre.toLowerCase();
-  const ty = (types||[]).join(' ').toLowerCase();
-  // Unsplash Source by keyword — reliable food photos
-  const seeds = [
-    [['soupe','velouté','bouillon'], 'soup+bowl'],
-    [['lasagne','gratin'], 'pasta+baked'],
-    [['risotto'], 'risotto'],
-    [['salade','caesar'], 'salad'],
-    [['tarte','quiche','cake salé','clafoutis','feuilleté'], 'tart+pie'],
-    [['pâtes','spaghetti','penne','farfalle','gnocchi','ravioles','crozets','tagliatelle','macaroni'], 'pasta'],
-    [['poulet','dinde'], 'chicken+dish'],
-    [['boeuf','agneau','porc','veau','filet mignon','paupiette','blanquette','bourguignon','osso'], 'meat+dish'],
-    [['saumon','truite','poisson','cabillaud','crevette','colin'], 'fish+seafood'],
-    [['curry'], 'curry+bowl'],
-    [['riz','wok','nouilles','ramen','pho','bibimbap','bo bun'], 'asian+food'],
-    [['couscous','tajine'], 'moroccan+food'],
-    [['burger','tacos'], 'tacos'],
-    [['pizza'], 'pizza'],
-    [['dessert','gâteau','cake','crêpe'], 'dessert+cake'],
-    [['brochette','bbq'], 'grilled+food'],
-    [['poke','bowl'], 'poke+bowl'],
+function getPhoto(titre,types){
+  const t=titre.toLowerCase(),ty=(types||[]).join(' ').toLowerCase();
+  const id=Math.abs([...titre].reduce((a,c)=>a+c.charCodeAt(0),0))%40+1;
+  const seeds=[
+    [['soupe','velouté','bouillon'],'soup+bowl'],
+    [['lasagne'],'lasagna+baked'],
+    [['gratin'],'gratin+baked+dish'],
+    [['risotto'],'risotto+italian'],
+    [['salade','caesar'],'salad+fresh'],
+    [['tarte','quiche','clafoutis','feuilleté'],'tart+quiche'],
+    [['cake'],'savory+cake'],
+    [['pâtes','spaghetti','penne','farfalle','gnocchi','ravioles','crozets','tagliatelle'],'pasta+italian'],
+    [['poulet','dinde'],'chicken+dish'],
+    [['boeuf','agneau','porc','veau','filet','paupiette','blanquette','bourguignon','osso','rôti'],'meat+dish'],
+    [['saumon','truite','poisson','cabillaud','crevette','colin'],'fish+seafood'],
+    [['curry'],'curry+bowl'],
+    [['riz','wok','ramen','pho','bibimbap'],'asian+rice+bowl'],
+    [['nouilles'],'noodles+asian'],
+    [['couscous','tajine'],'moroccan+tagine'],
+    [['tacos'],'tacos+mexican'],
+    [['burger'],'burger'],
+    [['dessert','gâteau','crêpe','pancake'],'dessert+cake'],
+    [['brochette','bbq'],'grilled+bbq'],
+    [['poke','bowl'],'poke+bowl'],
+    [['bo bun'],'vietnamese+bowl'],
   ];
-  const id = Math.abs([...titre].reduce((a,c)=>a+c.charCodeAt(0),0)) % 30 + 1;
-  for (const [keys, q] of seeds) {
-    if (keys.some(k => t.includes(k) || ty.includes(k))) {
-      return `https://source.unsplash.com/400x300/?${q}&sig=${id}`;
-    }
-  }
-  return `https://source.unsplash.com/400x300/?food,dish&sig=${id}`;
+  for(const[keys,q]of seeds){if(keys.some(k=>t.includes(k)||ty.includes(k)))return`https://source.unsplash.com/400x300/?${q}&sig=${id}`;}
+  return`https://source.unsplash.com/400x300/?food,plat&sig=${id}`;
 }
 
-function typeStyle(types) {
-  const ty = (types||[]).join(' ');
-  if(ty.includes('Dimanche')) return {label:'Dimanche', bg:'rgba(239,68,68,0.15)', color:'#DC2626'};
-  if(ty.includes('Quiche')||ty.includes('Tarte')||ty.includes('Cake')) return {label:'Quiche / Tarte', bg:'rgba(139,92,246,0.15)', color:'#7C3AED'};
-  if(ty.includes('Soupe')) return {label:'Soupe', bg:'rgba(59,130,246,0.15)', color:'#2563EB'};
-  if(ty.includes('Salade')) return {label:'Salade', bg:'rgba(16,185,129,0.15)', color:'#059669'};
-  if(ty.includes('végé')||ty.includes('Vegan')) return {label:'Végétarien', bg:'rgba(52,211,153,0.15)', color:'#059669'};
-  if(ty.includes('Dessert')) return {label:'Dessert', bg:'rgba(245,158,11,0.15)', color:'#D97706'};
-  return {label:'Plat', bg:'rgba(107,114,128,0.12)', color:'#4B5563'};
+function typeStyle(types){
+  const ty=(types||[]).join(' ');
+  if(ty.includes('Dimanche'))return{label:'Dimanche',bg:'rgba(239,68,68,0.15)',color:'#DC2626'};
+  if(ty.includes('Quiche')||ty.includes('Tarte')||ty.includes('Cake'))return{label:'Quiche / Tarte',bg:'rgba(139,92,246,0.15)',color:'#7C3AED'};
+  if(ty.includes('Soupe'))return{label:'Soupe',bg:'rgba(59,130,246,0.15)',color:'#2563EB'};
+  if(ty.includes('Salade'))return{label:'Salade',bg:'rgba(16,185,129,0.15)',color:'#059669'};
+  if(ty.includes('végé')||ty.includes('Vegan'))return{label:'Végétarien',bg:'rgba(52,211,153,0.15)',color:'#059669'};
+  if(ty.includes('Dessert'))return{label:'Dessert',bg:'rgba(245,158,11,0.15)',color:'#D97706'};
+  return{label:'Plat',bg:'rgba(107,114,128,0.12)',color:'#4B5563'};
 }
-
-function regimeStyle(r) {
-  const m = {Végé:{bg:'rgba(52,211,153,0.15)',c:'#059669'},Vegan:{bg:'rgba(16,185,129,0.15)',c:'#047857'},Poisson:{bg:'rgba(59,130,246,0.15)',c:'#2563EB'},Viande:{bg:'rgba(239,68,68,0.15)',c:'#DC2626'},Flexi:{bg:'rgba(107,114,128,0.12)',c:'#4B5563'}};
+function regimeStyle(r){
+  const m={Végé:{bg:'rgba(52,211,153,0.15)',c:'#059669'},Vegan:{bg:'rgba(16,185,129,0.15)',c:'#047857'},Poisson:{bg:'rgba(59,130,246,0.15)',c:'#2563EB'},Viande:{bg:'rgba(239,68,68,0.15)',c:'#DC2626'},Flexi:{bg:'rgba(107,114,128,0.12)',c:'#4B5563'}};
   return m[r]||{bg:'rgba(107,114,128,0.12)',c:'#4B5563'};
 }
+function avisIcon(a){return a==='❤️ Coup de coeur'?'❤️':a==='✅ Testé et approuvé'?'✅':a==='🤔 Ca passe toujours'?'🤔':'';}
 
-function avisIcon(a) {
-  return a==='❤️ Coup de coeur'?'❤️':a==='✅ Testé et approuvé'?'✅':a==='🤔 Ca passe toujours'?'🤔':'';
-}
+let all=[], activeFilter='';
 
-// ── State
-let all = [], activeFilter = '';
-
-async function init() {
-  const res = await fetch(`${SB}/rest/v1/recettes?select=*&limit=300`,{headers:{'apikey':KEY,'Authorization':`Bearer ${KEY}`}});
-  all = await res.json();
+async function init(){
+  const res=await fetch(`${SB}/rest/v1/recettes?select=*&limit=300`,{headers:{'apikey':KEY,'Authorization':`Bearer ${KEY}`}});
+  all=await res.json();
   buildSemaines();
   buildCatalogue();
 }
 
-// ══ SEMAINES ══
-function buildSemaines() {
-  const now = new Date();
-  const cur = isoWeek(now);
-  const weeks = [ww(cur-1), cur, ww(cur+1)];
-  const s = saison(cur); const sm = SM[s];
+function buildSemaines(){
+  const now=new Date(), cur=isoWeek(now);
+  const weeks=[ww(cur-1),cur,ww(cur+1)];
+  const s=saison(cur), sm=SM[s];
+  const bw={};
+  all.forEach(r=>(r.semaines||[]).forEach(sw=>{const n=WM[sw];if(n!=null){if(!bw[n])bw[n]=[];bw[n].push(r);}}));
 
-  // Group by week
-  const bw = {};
-  all.forEach(r => (r.semaines||[]).forEach(sw => { const n=WM[sw]; if(n!=null){if(!bw[n])bw[n]=[];bw[n].push(r);} }));
+  const heroItems=bw[cur]||[];
+  const heroPhoto=heroItems.length?getPhoto(heroItems[0].titre,heroItems[0].type_plat):`https://source.unsplash.com/800x400/?food,cooking&sig=99`;
+  const dateStr=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
 
-  // Hero photo — first recipe of current week
-  const heroItems = bw[cur]||[];
-  const heroPhoto = heroItems.length ? getPhoto(heroItems[0].titre, heroItems[0].type_plat) : `https://source.unsplash.com/800x400/?food,cooking&sig=99`;
-  const heroTitle = WL[cur] || `Semaine ${cur}`;
-  const dateStr = now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
-
-  let html = `
-  <div class="week-hero anim" style="animation-delay:0s">
+  let html=`<div class="week-hero anim" style="animation-delay:0s">
     <img class="week-hero-img" src="${heroPhoto}" loading="lazy" onerror="this.src='https://source.unsplash.com/800x400/?cooking&sig=1'">
     <div class="week-hero-overlay"></div>
     <div class="week-hero-content">
       <div class="week-hero-eyebrow">Cette semaine</div>
-      <div class="week-hero-title">${heroTitle}</div>
+      <div class="week-hero-title">${WL[cur]||`Semaine ${cur}`}</div>
       <div class="week-hero-sub">${dateStr}</div>
       <div class="saison-tag" style="background:${sm.bg};color:${sm.color}">${sm.emoji} ${s}</div>
     </div>
   </div>`;
 
-  weeks.forEach((w, i) => {
-    const isCur = w===cur;
-    const isPast = w===ww(cur-1);
-    const label = WL[w]||`Semaine ${w}`;
-    const items = bw[w]||[];
-    const tagLabel = isCur?'Cette semaine':isPast?'Semaine passée':'Semaine prochaine';
-    const tagBg = isCur?'#111':'rgba(0,0,0,0.07)';
-    const tagColor = isCur?'#fff':'#888';
-    const delay = (i*0.08+0.1)+'s';
+  weeks.forEach((w,i)=>{
+    const isCur=w===cur, isPast=w===ww(cur-1);
+    const label=WL[w]||`Semaine ${w}`;
+    const items=bw[w]||[];
+    const tagLabel=isCur?'Cette semaine':isPast?'Semaine passée':'Semaine prochaine';
+    const tagBg=isCur?'#111':'rgba(0,0,0,0.07)';
+    const tagColor=isCur?'#fff':'#888';
+    const delay=(i*0.08+0.1)+'s';
 
-    html += `<div class="section-head anim" style="animation-delay:${delay}">
+    html+=`<div class="section-head anim" style="animation-delay:${delay}">
       <span class="section-title">${label}</span>
       <span class="section-badge" style="background:${tagBg};color:${tagColor}">${tagLabel}</span>
     </div>`;
 
-    if(!items.length) {
-      html += `<div class="anim" style="animation-delay:${delay};padding:0 20px 4px">
+    if(!items.length){
+      html+=`<div class="anim" style="animation-delay:${delay};padding:0 20px 4px">
         <div style="background:white;border-radius:18px;padding:24px;text-align:center;color:#aaa;font-size:14px;font-weight:600">Aucune recette planifiée</div>
       </div>`;
     } else {
-      html += `<div class="cards-scroll anim" style="animation-delay:${delay}">`;
-      items.forEach((r,j) => {
-        const photo = getPhoto(r.titre, r.type_plat);
-        const ts = typeStyle(r.type_plat);
-        const rs = r.regime ? regimeStyle(r.regime) : null;
-        const av = avisIcon(r.avis);
-        html += `<div class="recipe-card ${items.length===1?'full':''}" onclick="openSheet(${r.id})">
+      html+=`<div class="cards-scroll anim" style="animation-delay:${delay}">`;
+      items.forEach((r,j)=>{
+        const photo=getPhoto(r.titre,r.type_plat);
+        const ts=typeStyle(r.type_plat);
+        const rs=r.regime?regimeStyle(r.regime):null;
+        const av=avisIcon(r.avis);
+        html+=`<div class="recipe-card ${items.length===1?'full':''}" onclick="openSheet('${r.id}')">
           <div class="card-img-wrap">
             <img class="card-img" src="${photo}" loading="lazy" onerror="this.src='https://source.unsplash.com/400x300/?food&sig=${j}'">
             <div class="card-img-overlay"></div>
@@ -565,31 +517,29 @@ function buildSemaines() {
           </div>
         </div>`;
       });
-      html += `</div>`;
+      html+=`</div>`;
     }
   });
 
-  document.getElementById('loader-s').style.display = 'none';
-  const c = document.getElementById('semaines-content');
-  c.innerHTML = html;
+  document.getElementById('loader-s').style.display='none';
+  document.getElementById('semaines-content').innerHTML=html;
 }
 
-// ══ CATALOGUE ══
-function buildCatalogue() {
-  document.getElementById('loader-c').style.display = 'none';
-  const g = document.getElementById('cat-grid');
-  g.style.display = 'grid';
+function buildCatalogue(){
+  document.getElementById('loader-c').style.display='none';
+  const g=document.getElementById('cat-grid');
+  g.style.display='grid';
   renderCat(all);
 }
 
-function renderCat(items) {
-  const g = document.getElementById('cat-grid');
+function renderCat(items){
+  const g=document.getElementById('cat-grid');
   if(!items.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#aaa;font-size:14px;font-weight:600">Aucune recette trouvée</div>';return;}
-  g.innerHTML = items.map((r,i) => {
-    const photo = getPhoto(r.titre, r.type_plat);
-    const ts = typeStyle(r.type_plat);
-    const av = avisIcon(r.avis);
-    return `<div class="cat-card" onclick="openSheet(${r.id})">
+  g.innerHTML=items.map((r,i)=>{
+    const photo=getPhoto(r.titre,r.type_plat);
+    const ts=typeStyle(r.type_plat);
+    const av=avisIcon(r.avis);
+    return`<div class="cat-card" onclick="openSheet('${r.id}')">
       <div class="cat-img-wrap">
         <img class="cat-img" src="${photo}" loading="lazy" onerror="this.src='https://source.unsplash.com/300x200/?food&sig=${i}'">
         ${av?`<div class="cat-avis">${av}</div>`:''}
@@ -602,34 +552,39 @@ function renderCat(items) {
   }).join('');
 }
 
-function filterCat() {
-  const q = document.getElementById('search').value.toLowerCase();
-  let items = all;
-  if(activeFilter==='❤️') items = items.filter(r=>r.avis==='❤️ Coup de coeur');
-  else if(activeFilter) items = items.filter(r=>r.regime===activeFilter);
-  if(q) items = items.filter(r=>r.titre.toLowerCase().includes(q));
+function filterCat(){
+  const q=document.getElementById('search').value.toLowerCase();
+  let items=all;
+  if(activeFilter==='❤️') items=items.filter(r=>r.avis==='❤️ Coup de coeur');
+  else if(activeFilter) items=items.filter(r=>r.regime===activeFilter);
+  if(q) items=items.filter(r=>r.titre.toLowerCase().includes(q));
   renderCat(items);
 }
-function setFilter(f,btn) {
+function setFilter(f,btn){
   activeFilter=f;
   document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   filterCat();
 }
 
-// ══ SHEET ══
-function openSheet(id) {
-  const r = all.find(x=>x.id==id); if(!r) return;
-  const photo = getPhoto(r.titre, r.type_plat);
-  const ts = typeStyle(r.type_plat);
-  const rs = r.regime ? regimeStyle(r.regime) : null;
-  const av = avisIcon(r.avis);
-  const semLabel = (r.semaines||[]).join(', ')||'—';
+// ── Sheet : on stocke l'id courant pour éviter les conflits
+let currentSheetId = null;
 
-  document.getElementById('sheet-body').innerHTML = `
+function openSheet(id){
+  const r=all.find(x=>String(x.id)===String(id));
+  if(!r){console.warn('Recette non trouvée:',id);return;}
+  currentSheetId=id;
+  const photo=getPhoto(r.titre,r.type_plat);
+  const ts=typeStyle(r.type_plat);
+  const rs=r.regime?regimeStyle(r.regime):null;
+  const av=avisIcon(r.avis);
+  const semLabel=(r.semaines||[]).join(' · ')||'—';
+
+  document.getElementById('sheet-body').innerHTML=`
     <div class="sheet-photo-wrap">
       <img class="sheet-photo" src="${photo}" loading="lazy" onerror="this.src='https://source.unsplash.com/800x400/?food&sig=0'">
       <div class="sheet-photo-overlay"></div>
+      <button class="sheet-close" onclick="closeSheet()">✕</button>
       <div class="sheet-photo-title">${r.titre}</div>
     </div>
     <div class="sheet-meta">
@@ -639,35 +594,47 @@ function openSheet(id) {
       ${av?`<span class="sheet-tag" style="background:rgba(0,0,0,0.06);color:#555">${r.avis}</span>`:''}
     </div>
     <div class="sheet-section">
-      <div class="sheet-section-label">Saisons · Semaines planifiées</div>
-      <div class="sheet-semaines">${(r.saison||[]).join(', ')} · ${semLabel}</div>
+      <div class="sheet-section-label">Saisons</div>
+      <div class="sheet-semaines">${(r.saison||[]).join(', ')||'—'}</div>
+    </div>
+    <div class="sheet-section">
+      <div class="sheet-section-label">Semaines planifiées</div>
+      <div class="sheet-semaines">${semLabel}</div>
     </div>
     ${r.ingredients?`<div class="sheet-section"><div class="sheet-section-label">Ingrédients</div><div class="sheet-section-text">${r.ingredients}</div></div>`:''}
     ${r.recette_ecrite?`<div class="sheet-section"><div class="sheet-section-label">Recette</div><div class="sheet-section-text">${r.recette_ecrite}</div></div>`:''}
     <div class="sheet-pb"></div>
   `;
-  document.getElementById('sheet').classList.add('open');
-  document.getElementById('overlay').classList.add('open');
-}
-function closeSheet() {
-  document.getElementById('sheet').classList.remove('open');
-  document.getElementById('overlay').classList.remove('open');
+
+  // Force reflow before adding class
+  const sheet=document.getElementById('sheet');
+  sheet.scrollTop=0;
+  requestAnimationFrame(()=>{
+    sheet.classList.add('open');
+    document.getElementById('overlay').classList.add('open');
+  });
 }
 
-// ══ NAV ══
-function goTo(name) {
+function closeSheet(){
+  document.getElementById('sheet').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  currentSheetId=null;
+}
+
+function goTo(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
   document.getElementById('btn-'+name).classList.add('active');
 }
 
-function openAddRecette() {
-  alert('Fonctionnalité "Ajouter une recette" à venir dans la prochaine version !');
+function openAddRecette(){
+  alert('Fonctionnalité "Ajouter une recette" — prochaine version !');
 }
 
-init().catch(()=>{
-  document.getElementById('loader-s').innerHTML='<div style="padding:40px;text-align:center;color:red;font-size:13px;font-weight:600">Erreur de connexion à Supabase</div>';
+init().catch(e=>{
+  console.error(e);
+  document.getElementById('loader-s').innerHTML='<div style="padding:40px;text-align:center;color:red;font-size:13px;font-weight:600">Erreur de connexion</div>';
 });
 </script>
 </body>
