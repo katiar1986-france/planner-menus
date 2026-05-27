@@ -481,11 +481,15 @@ body {
 @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
 .anim { opacity:0; animation: fadeUp 0.4s ease forwards; }
 
-/* Photo edit action */
-.photo-edit-row { padding: 12px 20px 0; }
-.photo-edit-btn {
-  width: 100%;
-  padding: 12px 14px;
+/* Actions dans la fiche recette (Photo + Modifier) */
+.sheet-actions {
+  padding: 12px 20px 0;
+  display: flex;
+  gap: 10px;
+}
+.sheet-action-btn {
+  flex: 1; min-width: 0;
+  padding: 12px 12px;
   border-radius: var(--radius-sm);
   border: 1px dashed rgba(0,0,0,0.18);
   background: #FAFAF6;
@@ -493,12 +497,128 @@ body {
   color: var(--label2);
   cursor: pointer;
   transition: background 0.15s, transform 0.12s;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.photo-edit-btn:active { transform: scale(0.98); background: #F0F0E8; }
+.sheet-action-btn:active { transform: scale(0.98); background: #F0F0E8; }
+.sheet-action-btn.primary {
+  background: var(--label);
+  color: white;
+  border: 1px solid var(--label);
+}
+.sheet-action-btn.primary:active { background: #333; }
 .photo-edit-btn.busy { opacity: 0.6; cursor: progress; }
 .photo-edit-btn.ok { background: rgba(16,185,129,0.12); color: #059669; border-color: rgba(16,185,129,0.3); }
 .photo-edit-btn.err { background: rgba(239,68,68,0.12); color: #DC2626; border-color: rgba(239,68,68,0.3); }
+
+/* ══════════════════════════
+   FORMULAIRE recette
+══════════════════════════ */
+.form-header {
+  position: sticky; top: 0;
+  background: white;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--sep);
+  z-index: 5;
+  gap: 10px;
+}
+.form-header-title { font-size: 16px; font-weight: 900; letter-spacing: -0.2px; flex: 1; text-align: center; }
+.form-cancel, .form-save {
+  background: none; border: none;
+  font-family: var(--f); font-size: 14px; font-weight: 800;
+  cursor: pointer; padding: 4px 0;
+  flex-shrink: 0;
+}
+.form-cancel { color: var(--label3); }
+.form-save { color: var(--orange); font-weight: 900; }
+.form-save:disabled { opacity: 0.5; cursor: progress; }
+
+.form-body { padding: 6px 18px 12px; }
+.form-section { padding: 16px 0; border-bottom: 1px solid var(--sep); }
+.form-section:last-child { border-bottom: none; }
+.form-label {
+  display: block;
+  font-size: 11px; font-weight: 800;
+  color: var(--label3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+.form-hint {
+  font-size: 10px; font-weight: 700;
+  color: var(--label3);
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 4px;
+  opacity: 0.7;
+}
+.form-input, .form-textarea {
+  width: 100%;
+  font-family: var(--f);
+  font-size: 15px; font-weight: 600;
+  border: 1px solid var(--sep);
+  border-radius: var(--radius-sm);
+  background: #FAFAF6;
+  padding: 11px 12px;
+  outline: none;
+  color: var(--label);
+  transition: border-color 0.15s, background 0.15s;
+}
+.form-input:focus, .form-textarea:focus {
+  border-color: var(--orange);
+  background: white;
+}
+.form-textarea {
+  resize: vertical;
+  line-height: 1.55;
+  min-height: 100px;
+  font-weight: 500;
+}
+.form-chips {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.form-chip {
+  background: #F0F0F0;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  padding: 7px 12px;
+  font-family: var(--f); font-size: 12px; font-weight: 700;
+  color: var(--label2);
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.form-chip:active { transform: scale(0.94); }
+.form-chip.selected {
+  background: var(--label);
+  color: white;
+  border-color: var(--label);
+}
+.form-chips-weeks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+  gap: 6px;
+}
+.form-chip-week {
+  background: #F4F4EE;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  padding: 8px 4px;
+  font-family: var(--f);
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.form-chip-week:active { transform: scale(0.94); }
+.form-chip-week-emoji { font-size: 16px; line-height: 1; }
+.form-chip-week-num { font-size: 10px; font-weight: 800; color: var(--label2); letter-spacing: 0.02em; }
+.form-chip-week.selected {
+  background: var(--orange);
+  border-color: var(--orange);
+}
+.form-chip-week.selected .form-chip-week-num { color: white; }
 
 /* Recipe cards: prevent scroll-vs-tap ambiguity */
 .recipe-card, .cat-card { touch-action: manipulation; }
@@ -940,11 +1060,14 @@ function openSheet(id){
       <button class="sheet-close" onclick="closeSheet()">✕</button>
       <div class="sheet-photo-title">${r.titre}</div>
     </div>
-    <div class="photo-edit-row">
-      <button class="photo-edit-btn" id="photo-edit-btn" type="button">
-        <span>📷</span><span id="photo-edit-label">${r.photo_url?'Remplacer la photo':'Ajouter une photo'}</span>
+    <div class="sheet-actions">
+      <button class="sheet-action-btn photo-edit-btn" id="photo-edit-btn" type="button">
+        <span>📷</span><span id="photo-edit-label">${r.photo_url?'Photo':'Photo'}</span>
       </button>
       <input type="file" id="photo-input" accept="image/*" hidden>
+      <button class="sheet-action-btn primary" type="button" onclick="openRecipeForm('${r.id}')">
+        <span>✏️</span><span>Modifier</span>
+      </button>
     </div>
     <div class="sheet-meta">
       <span class="sheet-tag" style="background:${ts.bg};color:${ts.color}">${ts.label}</span>
@@ -1076,7 +1199,257 @@ function goTo(name){
 }
 
 function openAddRecette(){
-  alert('Fonctionnalité "Ajouter une recette" — prochaine version !');
+  openRecipeForm(null);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// FORMULAIRE RECETTE (ajout / modification)
+// ══════════════════════════════════════════════════════════════════════════
+
+const FORM_TYPES = ['Plat', 'Plat complet', 'Dimanche midi', 'Quiche / Tarte / Cake', 'Soupe', 'Salade', 'Entrée', 'Dessert'];
+const FORM_REGIMES = ['Végé', 'Vegan', 'Poisson', 'Viande', 'Flexi'];
+const FORM_SAISONS = [
+  { value: 'Hiver',     label: '❄️ Hiver' },
+  { value: 'Printemps', label: '🌸 Printemps' },
+  { value: 'Été',       label: '☀️ Été' },
+  { value: 'Automne',   label: '🍂 Automne' },
+];
+const FORM_AVIS = [
+  '❤️ Coup de coeur',
+  '✅ Testé et approuvé',
+  '🤔 Ca passe toujours',
+  '🤢 A remplacer',
+];
+
+function escAttr(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function distinctValues(field){
+  const set = new Set();
+  for (const r of all) {
+    const v = r[field];
+    if (Array.isArray(v)) v.forEach(x => { if (x) set.add(x); });
+    else if (v) set.add(v);
+  }
+  return [...set];
+}
+
+function chipsHTML(field, options, selected, multi){
+  const selArr = Array.isArray(selected) ? selected : (selected ? [selected] : []);
+  return `<div class="form-chips" data-field="${field}" data-multi="${multi?1:0}">${
+    options.map(opt => {
+      const value = typeof opt === 'string' ? opt : opt.value;
+      const label = typeof opt === 'string' ? opt : (opt.label || opt.value);
+      const sel = selArr.includes(value) ? ' selected' : '';
+      return `<button type="button" class="form-chip${sel}" data-value="${escAttr(value)}" onclick="toggleChip(this)">${label}</button>`;
+    }).join('')
+  }</div>`;
+}
+
+function weeksFormHTML(selected){
+  const selArr = Array.isArray(selected) ? selected : [];
+  let html = `<div class="form-chips form-chips-weeks" data-field="semaines" data-multi="1">`;
+  for (let i = 1; i <= 52; i++) {
+    const label = WL[i] || `Semaine ${i}`;
+    const emoji = weekEmoji(i) || '📅';
+    const sel = selArr.includes(label) ? ' selected' : '';
+    html += `<button type="button" class="form-chip-week${sel}" data-value="${escAttr(label)}" onclick="toggleChip(this)">
+      <span class="form-chip-week-emoji">${emoji}</span>
+      <span class="form-chip-week-num">S${String(i).padStart(2,'0')}</span>
+    </button>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function toggleChip(btn){
+  const wrap = btn.closest('[data-field]');
+  if (!wrap) return;
+  const multi = wrap.dataset.multi === '1';
+  if (multi) {
+    btn.classList.toggle('selected');
+  } else {
+    const wasSelected = btn.classList.contains('selected');
+    wrap.querySelectorAll('.form-chip, .form-chip-week').forEach(b => b.classList.remove('selected'));
+    if (!wasSelected) btn.classList.add('selected');
+  }
+}
+
+function buildRecipeFormHTML(r){
+  const isNew = !r || !r.id;
+  const d = r || {};
+  // Union des types connus + ceux déjà utilisés dans les données
+  const typesList = [...new Set([...FORM_TYPES, ...distinctValues('type_plat')])];
+  const cuisinesList = distinctValues('cuisine');
+  const titreId = isNew ? '' : d.id;
+  return `
+    <div class="form-header">
+      <button type="button" class="form-cancel" onclick="cancelForm('${titreId}')">Annuler</button>
+      <div class="form-header-title">${isNew ? 'Nouvelle recette' : 'Modifier'}</div>
+      <button type="button" class="form-save" id="form-save-btn" onclick="saveRecipe('${titreId}')">Enregistrer</button>
+    </div>
+    <div class="form-body">
+      <div class="form-section">
+        <label class="form-label">Titre</label>
+        <input class="form-input" type="text" name="titre" placeholder="Ex. Quiche aux poireaux" value="${escAttr(d.titre)}">
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">Type de plat <span class="form-hint">plusieurs possibles</span></label>
+        ${chipsHTML('type_plat', typesList, d.type_plat, true)}
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">Régime</label>
+        ${chipsHTML('regime', FORM_REGIMES, d.regime, false)}
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">Saison <span class="form-hint">plusieurs possibles</span></label>
+        ${chipsHTML('saison', FORM_SAISONS, d.saison, true)}
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">Cuisine</label>
+        <input class="form-input" type="text" name="cuisine" list="form-cuisines-list" placeholder="Ex. Italien, Asiatique…" value="${escAttr(d.cuisine)}">
+        <datalist id="form-cuisines-list">
+          ${cuisinesList.map(c => `<option value="${escAttr(c)}">`).join('')}
+        </datalist>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">Avis</label>
+        ${chipsHTML('avis', FORM_AVIS, d.avis, false)}
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">Ingrédients</label>
+        <textarea class="form-textarea" name="ingredients" rows="6" placeholder="Un par ligne…">${escHtml(d.ingredients)}</textarea>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">Recette</label>
+        <textarea class="form-textarea" name="recette_ecrite" rows="10" placeholder="Les étapes…">${escHtml(d.recette_ecrite)}</textarea>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">Semaines planifiées <span class="form-hint">plusieurs possibles</span></label>
+        ${weeksFormHTML(d.semaines)}
+      </div>
+    </div>
+    <div class="sheet-pb"></div>
+  `;
+}
+
+function openRecipeForm(recetteId){
+  const r = recetteId ? all.find(x => String(x.id) === String(recetteId)) : null;
+  currentSheetId = recetteId || null;
+  document.getElementById('sheet-body').innerHTML = buildRecipeFormHTML(r);
+  const sheet = document.getElementById('sheet');
+  sheet.scrollTop = 0;
+  requestAnimationFrame(() => {
+    sheet.classList.add('open');
+    document.getElementById('overlay').classList.add('open');
+  });
+}
+
+function cancelForm(recetteId){
+  if (recetteId) {
+    openSheet(recetteId);
+  } else {
+    closeSheet();
+  }
+}
+
+function collectFormData(){
+  const get = s => document.querySelector(s);
+  const chipsVals = field => [...document.querySelectorAll(`[data-field="${field}"] .selected`)].map(b => b.dataset.value);
+  const chipVal = field => {
+    const el = document.querySelector(`[data-field="${field}"] .selected`);
+    return el ? el.dataset.value : null;
+  };
+  const text = sel => {
+    const el = get(sel);
+    if (!el) return '';
+    return (el.value || '').trim();
+  };
+  return {
+    titre: text('input[name="titre"]'),
+    type_plat: chipsVals('type_plat'),
+    regime: chipVal('regime'),
+    saison: chipsVals('saison'),
+    cuisine: text('input[name="cuisine"]') || null,
+    avis: chipVal('avis'),
+    ingredients: (get('textarea[name="ingredients"]') || {}).value || null,
+    recette_ecrite: (get('textarea[name="recette_ecrite"]') || {}).value || null,
+    semaines: chipsVals('semaines'),
+  };
+}
+
+async function saveRecipe(recetteId){
+  const data = collectFormData();
+  if (!data.titre) {
+    alert('Le titre est obligatoire');
+    return;
+  }
+  // Nettoyage : arrays vides → null pour les colonnes nullable
+  const payload = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (v === undefined) continue;
+    if (Array.isArray(v) && v.length === 0) payload[k] = null;
+    else if (v === '') payload[k] = null;
+    else payload[k] = v;
+  }
+
+  const btn = document.getElementById('form-save-btn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  try {
+    let savedId = recetteId;
+    if (recetteId) {
+      // PATCH
+      const res = await fetch(`${SB}/rest/v1/recettes?id=eq.${recetteId}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': KEY,
+          'Authorization': `Bearer ${KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${await res.text().catch(() => '')}`);
+      const updated = (await res.json())[0];
+      const idx = all.findIndex(x => String(x.id) === String(recetteId));
+      if (idx >= 0) all[idx] = updated;
+    } else {
+      // POST
+      const res = await fetch(`${SB}/rest/v1/recettes`, {
+        method: 'POST',
+        headers: {
+          'apikey': KEY,
+          'Authorization': `Bearer ${KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${await res.text().catch(() => '')}`);
+      const created = (await res.json())[0];
+      all.push(created);
+      savedId = created.id;
+    }
+    buildSemaines();
+    filterCat();
+    openSheet(savedId);
+  } catch (e) {
+    console.error('Save recipe:', e);
+    btn.disabled = false;
+    btn.textContent = originalText;
+    alert('Erreur d\'enregistrement : ' + e.message);
+  }
 }
 
 init().catch(e=>{
