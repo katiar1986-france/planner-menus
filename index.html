@@ -22,8 +22,9 @@
   --orange: #FF6B2E;
   --radius: 18px;
   --radius-sm: 12px;
-  --safe-top: env(safe-area-inset-top, 44px);
-  --safe-bottom: env(safe-area-inset-bottom, 20px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --nav-h: 50px;
 }
 html { height: 100%; }
 body {
@@ -46,30 +47,30 @@ body {
    BOTTOM NAV
 ══════════════════════════ */
 .bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px;
   display: flex;
   align-items: stretch;
-  background: rgba(255,255,255,0.96);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
+  background: rgba(255,255,255,0.94);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  backdrop-filter: blur(16px) saturate(1.6);
   border-top: 1px solid var(--sep);
-  height: calc(58px + var(--safe-bottom));
+  height: calc(var(--nav-h) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
-  flex-shrink: 0;
   z-index: 50;
-  position: relative;
 }
 .nav-btn {
   flex: 1;
   border: none; background: none;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 3px;
+  gap: 2px;
   cursor: pointer;
   padding: 0;
   transition: transform 0.12s;
 }
 .nav-btn:active { transform: scale(0.94); }
 .nav-icon {
-  font-size: 24px; line-height: 1;
+  font-size: 22px; line-height: 1;
   filter: grayscale(1) opacity(0.4);
   transition: filter 0.15s;
 }
@@ -85,18 +86,17 @@ body {
 .nav-fab-wrap {
   flex: 1;
   display: flex; align-items: center; justify-content: center;
-  height: 100%;
   position: relative;
 }
 .fab {
-  width: 54px; height: 54px;
+  width: 50px; height: 50px;
   border-radius: 50%;
   background: var(--orange);
   border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 4px 18px rgba(255,107,46,0.45);
   position: relative;
-  top: -14px;
+  top: -12px;
   transition: transform 0.12s, box-shadow 0.12s;
 }
 .fab:active { transform: scale(0.91); box-shadow: 0 2px 8px rgba(255,107,46,0.3); }
@@ -108,7 +108,7 @@ body {
 .semaines-scroll {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 16px;
+  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px);
 }
 .semaines-scroll::-webkit-scrollbar { display: none; }
 
@@ -137,10 +137,16 @@ body {
 }
 .week-hero-sub::first-letter { text-transform: uppercase; }
 .week-hero-tags { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
-.saison-tag {
+.saison-tag, .count-tag {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 5px 11px; border-radius: 20px;
   font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.count-tag {
+  background: rgba(255,255,255,0.18);
+  color: white;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 /* Today pill — flotte sur le hero quand on n'est pas sur la semaine en cours */
@@ -188,22 +194,8 @@ body {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* Titre de section des recettes */
-.recipes-head {
-  display: flex; align-items: baseline; justify-content: space-between;
-  padding: 22px 22px 8px;
-}
-.recipes-head-title {
-  font-size: 12px; font-weight: 800; color: var(--label3);
-  text-transform: uppercase; letter-spacing: 0.08em;
-}
-.recipes-head-badge {
-  font-size: 10px; font-weight: 800; padding: 3px 9px; border-radius: 10px;
-  text-transform: uppercase; letter-spacing: 0.05em;
-}
-
 /* Recettes en cartes pleine largeur */
-.recipes-list { padding: 0 16px; display: flex; flex-direction: column; gap: 14px; }
+.recipes-list { padding: 18px 16px 0; display: flex; flex-direction: column; gap: 14px; }
 .recipe-card {
   background: var(--white); border-radius: var(--radius); overflow: hidden;
   box-shadow: 0 2px 14px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
@@ -224,6 +216,31 @@ body {
   background: white; display: flex; align-items: center; justify-content: center;
   font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
+.card-check {
+  position: absolute; top: 10px; left: 10px;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(255,255,255,0.92);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(0,0,0,0.06); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: rgba(0,0,0,0); font-weight: 900;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.16);
+  transition: transform 0.12s, background 0.18s, color 0.18s, border-color 0.18s;
+  padding: 0; line-height: 1;
+}
+.card-check:active { transform: scale(0.88); }
+.card-check.checked {
+  background: #34C759;
+  border-color: #34C759;
+  color: white;
+  box-shadow: 0 3px 12px rgba(52,199,89,0.45);
+}
+.recipe-card.done {
+  opacity: 0.55;
+  transition: opacity 0.28s ease;
+}
+.recipe-card.done .card-img { filter: grayscale(0.7) saturate(0.7); transition: filter 0.28s ease; }
+.recipe-card.done .card-title { text-decoration: line-through; text-decoration-color: rgba(0,0,0,0.3); }
 .card-type-badge {
   position: absolute; bottom: 12px; left: 12px;
   padding: 4px 10px; border-radius: 8px;
@@ -314,7 +331,8 @@ body {
 }
 .filter-chip.active { background: var(--label); color: white; }
 .catalogue-scroll {
-  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px;
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 16px 16px calc(var(--nav-h) + var(--safe-bottom) + 16px);
 }
 .catalogue-scroll::-webkit-scrollbar { display: none; }
 .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -573,6 +591,28 @@ function avisIcon(a){return a==='❤️ Coup de coeur'?'❤️':a==='✅ Testé 
 
 let all=[], activeFilter='', selectedWeek=null;
 
+// ── État "recette terminée" (persistance locale, multi-device viendra plus tard)
+const DONE_KEY='planner-menus-done-v1';
+let doneSet=new Set();
+function loadDone(){
+  try {
+    const raw=localStorage.getItem(DONE_KEY);
+    doneSet=new Set(raw?JSON.parse(raw):[]);
+  } catch { doneSet=new Set(); }
+}
+function saveDone(){
+  try { localStorage.setItem(DONE_KEY, JSON.stringify([...doneSet])); } catch {}
+}
+function doneKey(recetteId, week){ return `${recetteId}__${week}`; }
+function isDone(recetteId, week){ return doneSet.has(doneKey(recetteId, week)); }
+function toggleDone(event, recetteId, week){
+  event.stopPropagation();
+  const k=doneKey(recetteId, week);
+  if(doneSet.has(k)) doneSet.delete(k); else doneSet.add(k);
+  saveDone();
+  buildSemaines();
+}
+
 function isoWeekMonday(year, week){
   // Lundi de la semaine ISO donnée
   const jan4 = new Date(year, 0, 4);
@@ -606,6 +646,7 @@ function goToWeek(w){
 }
 
 async function init(){
+  loadDone();
   const res=await fetch(`${SB}/rest/v1/recettes?select=*&limit=300`,{headers:{'apikey':KEY,'Authorization':`Bearer ${KEY}`}});
   all=await res.json();
   buildSemaines();
@@ -625,7 +666,12 @@ function buildSemaines(){
     if(n!=null){ if(!bw[n]) bw[n]=[]; bw[n].push(r); }
   }));
 
-  const items=bw[w]||[];
+  // Tri : non-terminées d'abord, terminées en bas
+  const rawItems=bw[w]||[];
+  const items=rawItems.slice().sort((a,b)=>{
+    const da=isDone(a.id,w)?1:0, db=isDone(b.id,w)?1:0;
+    return da-db;
+  });
   const heroPhoto=items.length?getPhoto(items[0]):`https://source.unsplash.com/800x500/?cooking,${encodeURIComponent(s.toLowerCase())}&sig=${w}`;
   const label=WL[w]||`Semaine ${w}`;
 
@@ -646,12 +692,8 @@ function buildSemaines(){
   }
 
   const prevW=ww(w-1), nextW=ww(w+1);
-
-  // Status: règle minimale "min 5 recettes"
-  const isComplete=items.length>=5;
-  const statusLabel=isComplete?'Complet':'Incomplet';
-  const statusBg=isComplete?'rgba(16,185,129,0.15)':'rgba(245,158,11,0.18)';
-  const statusColor=isComplete?'#059669':'#D97706';
+  const doneCount=items.filter(r=>isDone(r.id,w)).length;
+  const countLabel=`${items.length} ${items.length>1?'recettes':'recette'}${doneCount?` · ${doneCount} ✓`:''}`;
 
   let html='';
 
@@ -667,6 +709,7 @@ function buildSemaines(){
         <div class="week-hero-sub">${sub}</div>
         <div class="week-hero-tags">
           <span class="saison-tag" style="background:${sm.bg};color:${sm.color}">${sm.emoji} ${s}</span>
+          ${items.length?`<span class="count-tag">🍽️ ${countLabel}</span>`:''}
         </div>
       </div>
     </div>`;
@@ -690,16 +733,9 @@ function buildSemaines(){
       </button>
     </div>`;
 
-  // ── HEAD recettes ───────────────────────────────────────────
-  html+=`
-    <div class="recipes-head anim" style="animation-delay:0.1s">
-      <span class="recipes-head-title">${items.length} ${items.length>1?'recettes':'recette'}</span>
-      <span class="recipes-head-badge" style="background:${statusBg};color:${statusColor}">${statusLabel}</span>
-    </div>`;
-
   // ── LISTE recettes ─────────────────────────────────────────
   if(!items.length){
-    html+=`<div class="empty-state anim" style="animation-delay:0.12s">Aucune recette planifiée pour cette semaine</div>`;
+    html+=`<div class="empty-state anim" style="animation-delay:0.1s">Aucune recette planifiée pour cette semaine</div>`;
   } else {
     html+=`<div class="recipes-list">`;
     items.forEach((r,j)=>{
@@ -707,10 +743,12 @@ function buildSemaines(){
       const ts=typeStyle(r.type_plat);
       const rs=r.regime?regimeStyle(r.regime):null;
       const av=avisIcon(r.avis);
-      html+=`<div class="recipe-card anim" style="animation-delay:${0.12+j*0.04}s" onclick="openSheet('${r.id}')">
+      const done=isDone(r.id,w);
+      html+=`<div class="recipe-card anim${done?' done':''}" style="animation-delay:${0.1+j*0.04}s" onclick="openSheet('${r.id}')">
         <div class="card-img-wrap">
           <img class="card-img" src="${photo}" loading="lazy" onerror="this.src='https://source.unsplash.com/600x400/?food&sig=${j}'">
           <div class="card-img-overlay"></div>
+          <button class="card-check${done?' checked':''}" aria-label="${done?'Décocher':'Marquer comme fait'}" onclick="toggleDone(event,'${r.id}',${w})">✓</button>
           ${av?`<div class="card-avis">${av}</div>`:''}
           <div class="card-type-badge" style="background:${ts.bg};color:${ts.color}">${ts.label}</div>
         </div>
