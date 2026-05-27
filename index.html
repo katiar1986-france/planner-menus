@@ -24,7 +24,11 @@
   --radius-sm: 12px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --nav-h: 50px;
+  /* Padding bas de la nav : on garde un min de 8px pour ne pas coller
+     la geste home indicator, mais on retire jusqu'à 16px du safe-bottom
+     pour gagner de la place. iPhone (~34px) → ~18px. Desktop (0) → 8px. */
+  --safe-bottom-tight: max(8px, calc(var(--safe-bottom) - 16px));
+  --nav-h: 42px;
 }
 html {
   height: 100%;
@@ -62,8 +66,8 @@ body {
   background: var(--white);
   border-top: 1px solid rgba(0,0,0,0.08);
   box-shadow: 0 -4px 18px rgba(0,0,0,0.06);
-  height: calc(var(--nav-h) + var(--safe-bottom));
-  padding-bottom: var(--safe-bottom);
+  height: calc(var(--nav-h) + var(--safe-bottom-tight));
+  padding-bottom: var(--safe-bottom-tight);
   z-index: 50;
 }
 /* Filet de sécurité : prolonge le fond blanc de la nav vers le bas
@@ -89,12 +93,12 @@ body {
 }
 .nav-btn:active { transform: scale(0.94); }
 .nav-icon {
-  font-size: 22px; line-height: 1;
+  font-size: 20px; line-height: 1;
   filter: grayscale(1) opacity(0.4);
   transition: filter 0.15s;
 }
 .nav-label {
-  font-size: 10px; font-weight: 700;
+  font-size: 9.5px; font-weight: 700;
   color: var(--label3); letter-spacing: 0.02em;
   transition: color 0.15s;
 }
@@ -127,7 +131,7 @@ body {
 .semaines-scroll {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px);
+  padding-bottom: calc(var(--nav-h) + var(--safe-bottom-tight) + 16px);
 }
 .semaines-scroll::-webkit-scrollbar { display: none; }
 
@@ -388,7 +392,7 @@ body {
 .filter-chip.active { background: var(--label); color: white; }
 .catalogue-scroll {
   flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  padding: 16px 16px calc(var(--nav-h) + var(--safe-bottom) + 16px);
+  padding: 16px 16px calc(var(--nav-h) + var(--safe-bottom-tight) + 16px);
 }
 .catalogue-scroll::-webkit-scrollbar { display: none; }
 .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
