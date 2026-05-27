@@ -47,10 +47,12 @@ body {
 ══════════════════════════ */
 .bottom-nav {
   display: flex;
-  align-items: center;
-  background: var(--white);
+  align-items: stretch;
+  background: rgba(255,255,255,0.96);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
   border-top: 1px solid var(--sep);
-  height: calc(56px + var(--safe-bottom));
+  height: calc(58px + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
   flex-shrink: 0;
   z-index: 50;
@@ -60,12 +62,12 @@ body {
   flex: 1;
   border: none; background: none;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 4px; height: 100%;
+  gap: 3px;
   cursor: pointer;
   padding: 0;
   transition: transform 0.12s;
 }
-.nav-btn:active { transform: scale(0.9); }
+.nav-btn:active { transform: scale(0.94); }
 .nav-icon {
   font-size: 24px; line-height: 1;
   filter: grayscale(1) opacity(0.4);
@@ -110,77 +112,175 @@ body {
 }
 .semaines-scroll::-webkit-scrollbar { display: none; }
 
+/* Hero */
 .week-hero {
-  position: relative; height: 220px; overflow: hidden; flex-shrink: 0;
+  position: relative; height: 260px; overflow: hidden; flex-shrink: 0;
 }
 .week-hero-img { width: 100%; height: 100%; object-fit: cover; }
 .week-hero-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.68) 100%);
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 30%, rgba(0,0,0,0.6) 100%);
 }
 .week-hero-content {
-  position: absolute; bottom: 0; left: 0; right: 0; padding: 20px;
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 22px;
 }
 .week-hero-eyebrow {
-  font-size: 11px; font-weight: 800; letter-spacing: 0.1em;
-  text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 4px;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; color: rgba(255,255,255,0.78); margin-bottom: 6px;
 }
-.week-hero-title { font-size: 26px; font-weight: 900; color: white; letter-spacing: -0.3px; line-height: 1.1; }
-.week-hero-sub { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 4px; font-weight: 600; }
-.saison-tag {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 4px 10px; border-radius: 20px;
-  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
-  margin-top: 8px;
-}
-.section-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 20px 20px 10px;
-}
-.section-title { font-size: 20px; font-weight: 900; letter-spacing: -0.3px; }
-.section-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 10px; }
-
-.cards-scroll {
-  display: flex; gap: 14px;
-  padding: 0 20px 4px;
-  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
-}
-.cards-scroll::-webkit-scrollbar { display: none; }
-
-.recipe-card {
-  flex-shrink: 0; width: 200px;
-  background: var(--white); border-radius: var(--radius); overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04);
-  cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
-  position: relative;
-}
-.recipe-card:active { transform: scale(0.97); }
-.recipe-card.full { width: calc(100vw - 40px); max-width: 390px; }
-.card-img-wrap { position: relative; height: 130px; overflow: hidden; }
-.card-img { width: 100%; height: 100%; object-fit: cover; background: #eee; }
-.card-img-overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.18) 100%);
-}
-.card-avis {
-  position: absolute; top: 10px; right: 10px;
-  width: 28px; height: 28px; border-radius: 50%;
-  background: white; display: flex; align-items: center; justify-content: center;
-  font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-.card-type-badge {
-  position: absolute; bottom: 10px; left: 10px;
-  padding: 3px 8px; border-radius: 8px;
-  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
-}
-.card-body { padding: 12px 14px 14px; }
-.card-title {
-  font-size: 14px; font-weight: 800; line-height: 1.3; letter-spacing: -0.1px;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+.week-hero-title {
+  font-size: 30px; font-weight: 900; color: white; letter-spacing: -0.5px; line-height: 1.05;
   margin-bottom: 6px;
 }
+.week-hero-sub {
+  font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 600;
+}
+.week-hero-sub::first-letter { text-transform: uppercase; }
+.week-hero-tags { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.saison-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 11px; border-radius: 20px;
+  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+/* Today pill — flotte sur le hero quand on n'est pas sur la semaine en cours */
+.today-pill {
+  position: absolute; top: calc(var(--safe-top) + 12px); right: 14px;
+  background: rgba(255,255,255,0.96);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border: none; cursor: pointer;
+  padding: 8px 14px; border-radius: 22px;
+  font-family: var(--f); font-size: 12px; font-weight: 800;
+  color: var(--label);
+  display: inline-flex; align-items: center; gap: 4px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  transition: transform 0.12s;
+  z-index: 5;
+}
+.today-pill:active { transform: scale(0.94); }
+
+/* Boutons précédente / prochaine */
+.week-nav {
+  display: flex; gap: 10px; padding: 14px 16px 4px;
+}
+.week-nav-btn {
+  flex: 1; min-width: 0;
+  background: white;
+  border: 1px solid var(--sep);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-family: var(--f);
+  cursor: pointer;
+  display: flex; align-items: center; gap: 10px;
+  transition: transform 0.12s, background 0.12s;
+  text-align: left;
+}
+.week-nav-btn:active { transform: scale(0.97); background: #FAFAF6; }
+.week-nav-btn.next { justify-content: flex-end; text-align: right; }
+.week-nav-arrow { font-size: 16px; color: var(--label3); font-weight: 800; flex-shrink: 0; }
+.week-nav-label { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.week-nav-eyebrow {
+  font-size: 10px; font-weight: 800; color: var(--label3);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.week-nav-value {
+  font-size: 13px; font-weight: 800; color: var(--label);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Titre de section des recettes */
+.recipes-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 22px 22px 8px;
+}
+.recipes-head-title {
+  font-size: 12px; font-weight: 800; color: var(--label3);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.recipes-head-badge {
+  font-size: 10px; font-weight: 800; padding: 3px 9px; border-radius: 10px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+/* Recettes en cartes pleine largeur */
+.recipes-list { padding: 0 16px; display: flex; flex-direction: column; gap: 14px; }
+.recipe-card {
+  background: var(--white); border-radius: var(--radius); overflow: hidden;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+.recipe-card:active { transform: scale(0.98); }
+.card-img-wrap { position: relative; height: 180px; overflow: hidden; }
+.card-img { width: 100%; height: 100%; object-fit: cover; background: #eee; display: block; }
+.card-img-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 55%, rgba(0,0,0,0.22) 100%);
+}
+.card-avis {
+  position: absolute; top: 12px; right: 12px;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: white; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.card-type-badge {
+  position: absolute; bottom: 12px; left: 12px;
+  padding: 4px 10px; border-radius: 8px;
+  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.card-body { padding: 14px 16px 16px; }
+.card-title {
+  font-size: 16px; font-weight: 800; line-height: 1.3; letter-spacing: -0.2px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  margin-bottom: 8px;
+}
 .card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.card-tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+.card-tag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 7px; }
+
+/* Empty state */
+.empty-state {
+  margin: 4px 16px;
+  background: white; border-radius: var(--radius);
+  padding: 32px 20px; text-align: center;
+  color: var(--label3); font-size: 14px; font-weight: 600;
+  border: 1px dashed rgba(0,0,0,0.1);
+}
+
+/* Strip toutes les semaines */
+.weeks-strip-head {
+  font-size: 12px; font-weight: 800; color: var(--label3);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 28px 22px 10px;
+}
+.weeks-strip {
+  display: flex; gap: 8px; padding: 0 16px 8px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.weeks-strip::-webkit-scrollbar { display: none; }
+.week-chip {
+  flex-shrink: 0;
+  background: white;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  padding: 10px 8px 9px;
+  min-width: 64px;
+  font-family: var(--f);
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  transition: transform 0.12s, background 0.12s, border-color 0.12s;
+  position: relative;
+}
+.week-chip:active { transform: scale(0.94); }
+.week-chip-emoji { font-size: 18px; line-height: 1; }
+.week-chip-num { font-size: 11px; font-weight: 800; color: var(--label2); letter-spacing: 0.02em; }
+.week-chip-dot {
+  position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+  width: 5px; height: 5px; border-radius: 50%; background: var(--orange);
+}
+.week-chip.selected { border-color: var(--label); background: #FAFAF6; }
+.week-chip.current .week-chip-num { color: var(--orange); }
+.week-chip.current.selected { border-color: var(--orange); }
 
 /* ══════════════════════════
    SCREEN CATALOGUE
@@ -471,7 +571,39 @@ function regimeStyle(r){
 }
 function avisIcon(a){return a==='❤️ Coup de coeur'?'❤️':a==='✅ Testé et approuvé'?'✅':a==='🤔 Ca passe toujours'?'🤔':'';}
 
-let all=[], activeFilter='';
+let all=[], activeFilter='', selectedWeek=null;
+
+function isoWeekMonday(year, week){
+  // Lundi de la semaine ISO donnée
+  const jan4 = new Date(year, 0, 4);
+  const jan4Day = (jan4.getDay() + 6) % 7; // 0 = lundi
+  const mondayWeek1 = new Date(jan4);
+  mondayWeek1.setDate(jan4.getDate() - jan4Day);
+  const monday = new Date(mondayWeek1);
+  monday.setDate(mondayWeek1.getDate() + (week - 1) * 7);
+  return monday;
+}
+function weekDateRange(year, week){
+  const monday = isoWeekMonday(year, week);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return { monday, sunday };
+}
+function fmtDateShort(d){
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }).replace('.', '');
+}
+function weekEmoji(w){
+  const label = WL[w] || '';
+  // On enlève "Semaine NN" pour récupérer juste le préfixe emoji
+  return label.replace(/Semaine\s*\d+/i, '').trim();
+}
+
+function goToWeek(w){
+  selectedWeek = ww(w);
+  buildSemaines();
+  const sc = document.getElementById('semaines-scroll');
+  if (sc) sc.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 async function init(){
   const res=await fetch(`${SB}/rest/v1/recettes?select=*&limit=300`,{headers:{'apikey':KEY,'Authorization':`Bearer ${KEY}`}});
@@ -482,73 +614,148 @@ async function init(){
 
 function buildSemaines(){
   const now=new Date(), cur=isoWeek(now);
-  const weeks=[ww(cur-1),cur,ww(cur+1)];
-  const s=saison(cur), sm=SM[s];
+  if(selectedWeek==null) selectedWeek=cur;
+  const w=selectedWeek;
+  const s=saison(w), sm=SM[s];
+
+  // Index recettes par numéro de semaine
   const bw={};
-  all.forEach(r=>(r.semaines||[]).forEach(sw=>{const n=WM[sw];if(n!=null){if(!bw[n])bw[n]=[];bw[n].push(r);}}));
+  all.forEach(r=>(r.semaines||[]).forEach(sw=>{
+    const n=WM[sw];
+    if(n!=null){ if(!bw[n]) bw[n]=[]; bw[n].push(r); }
+  }));
 
-  const heroItems=bw[cur]||[];
-  const heroPhoto=heroItems.length?getPhoto(heroItems[0]):`https://source.unsplash.com/800x400/?food,cooking&sig=99`;
-  const dateStr=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  const items=bw[w]||[];
+  const heroPhoto=items.length?getPhoto(items[0]):`https://source.unsplash.com/800x500/?cooking,${encodeURIComponent(s.toLowerCase())}&sig=${w}`;
+  const label=WL[w]||`Semaine ${w}`;
 
-  let html=`<div class="week-hero anim" style="animation-delay:0s">
-    <img class="week-hero-img" src="${heroPhoto}" loading="lazy" onerror="this.src='https://source.unsplash.com/800x400/?cooking&sig=1'">
-    <div class="week-hero-overlay"></div>
-    <div class="week-hero-content">
-      <div class="week-hero-eyebrow">Cette semaine</div>
-      <div class="week-hero-title">${WL[cur]||`Semaine ${cur}`}</div>
-      <div class="week-hero-sub">${dateStr}</div>
-      <div class="saison-tag" style="background:${sm.bg};color:${sm.color}">${sm.emoji} ${s}</div>
-    </div>
-  </div>`;
+  // Eyebrow + sub (date)
+  let eyebrow, sub;
+  if(w===cur){
+    eyebrow='Cette semaine';
+    sub=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  } else {
+    const diff=((w-cur+52)%52);
+    const signed=diff>26?diff-52:diff;
+    if(signed===-1) eyebrow='Semaine passée';
+    else if(signed===1) eyebrow='Semaine prochaine';
+    else if(signed<0) eyebrow=`Il y a ${-signed} semaines`;
+    else eyebrow=`Dans ${signed} semaines`;
+    const range=weekDateRange(now.getFullYear(), w);
+    sub=`${fmtDateShort(range.monday)} → ${fmtDateShort(range.sunday)}`;
+  }
 
-  weeks.forEach((w,i)=>{
-    const isCur=w===cur, isPast=w===ww(cur-1);
-    const label=WL[w]||`Semaine ${w}`;
-    const items=bw[w]||[];
-    const tagLabel=isCur?'Cette semaine':isPast?'Semaine passée':'Semaine prochaine';
-    const tagBg=isCur?'#111':'rgba(0,0,0,0.07)';
-    const tagColor=isCur?'#fff':'#888';
-    const delay=(i*0.08+0.1)+'s';
+  const prevW=ww(w-1), nextW=ww(w+1);
 
-    html+=`<div class="section-head anim" style="animation-delay:${delay}">
-      <span class="section-title">${label}</span>
-      <span class="section-badge" style="background:${tagBg};color:${tagColor}">${tagLabel}</span>
+  // Status: règle minimale "min 5 recettes"
+  const isComplete=items.length>=5;
+  const statusLabel=isComplete?'Complet':'Incomplet';
+  const statusBg=isComplete?'rgba(16,185,129,0.15)':'rgba(245,158,11,0.18)';
+  const statusColor=isComplete?'#059669':'#D97706';
+
+  let html='';
+
+  // ── HERO ─────────────────────────────────────────────────────
+  html+=`
+    <div class="week-hero anim">
+      <img class="week-hero-img" src="${heroPhoto}" loading="lazy" onerror="this.src='https://source.unsplash.com/800x500/?cooking&sig=99'">
+      <div class="week-hero-overlay"></div>
+      ${w!==cur?`<button class="today-pill" onclick="goToWeek(${cur})">Aujourd'hui ⤴</button>`:''}
+      <div class="week-hero-content">
+        <div class="week-hero-eyebrow">${eyebrow}</div>
+        <div class="week-hero-title">${label}</div>
+        <div class="week-hero-sub">${sub}</div>
+        <div class="week-hero-tags">
+          <span class="saison-tag" style="background:${sm.bg};color:${sm.color}">${sm.emoji} ${s}</span>
+        </div>
+      </div>
     </div>`;
 
-    if(!items.length){
-      html+=`<div class="anim" style="animation-delay:${delay};padding:0 20px 4px">
-        <div style="background:white;border-radius:18px;padding:24px;text-align:center;color:#aaa;font-size:14px;font-weight:600">Aucune recette planifiée</div>
+  // ── NAVIGATION PRÉCÉDENTE / PROCHAINE ───────────────────────
+  html+=`
+    <div class="week-nav anim" style="animation-delay:0.05s">
+      <button class="week-nav-btn prev" onclick="goToWeek(${prevW})">
+        <span class="week-nav-arrow">←</span>
+        <span class="week-nav-label">
+          <span class="week-nav-eyebrow">Précédente</span>
+          <span class="week-nav-value">${WL[prevW]||('Sem '+prevW)}</span>
+        </span>
+      </button>
+      <button class="week-nav-btn next" onclick="goToWeek(${nextW})">
+        <span class="week-nav-label">
+          <span class="week-nav-eyebrow">Prochaine</span>
+          <span class="week-nav-value">${WL[nextW]||('Sem '+nextW)}</span>
+        </span>
+        <span class="week-nav-arrow">→</span>
+      </button>
+    </div>`;
+
+  // ── HEAD recettes ───────────────────────────────────────────
+  html+=`
+    <div class="recipes-head anim" style="animation-delay:0.1s">
+      <span class="recipes-head-title">${items.length} ${items.length>1?'recettes':'recette'}</span>
+      <span class="recipes-head-badge" style="background:${statusBg};color:${statusColor}">${statusLabel}</span>
+    </div>`;
+
+  // ── LISTE recettes ─────────────────────────────────────────
+  if(!items.length){
+    html+=`<div class="empty-state anim" style="animation-delay:0.12s">Aucune recette planifiée pour cette semaine</div>`;
+  } else {
+    html+=`<div class="recipes-list">`;
+    items.forEach((r,j)=>{
+      const photo=getPhoto(r);
+      const ts=typeStyle(r.type_plat);
+      const rs=r.regime?regimeStyle(r.regime):null;
+      const av=avisIcon(r.avis);
+      html+=`<div class="recipe-card anim" style="animation-delay:${0.12+j*0.04}s" onclick="openSheet('${r.id}')">
+        <div class="card-img-wrap">
+          <img class="card-img" src="${photo}" loading="lazy" onerror="this.src='https://source.unsplash.com/600x400/?food&sig=${j}'">
+          <div class="card-img-overlay"></div>
+          ${av?`<div class="card-avis">${av}</div>`:''}
+          <div class="card-type-badge" style="background:${ts.bg};color:${ts.color}">${ts.label}</div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">${r.titre}</div>
+          <div class="card-meta">
+            ${rs?`<span class="card-tag" style="background:${rs.bg};color:${rs.c}">${r.regime}</span>`:''}
+            ${r.cuisine?`<span class="card-tag" style="background:rgba(0,0,0,0.06);color:#555">${r.cuisine}</span>`:''}
+          </div>
+        </div>
       </div>`;
-    } else {
-      html+=`<div class="cards-scroll anim" style="animation-delay:${delay}">`;
-      items.forEach((r,j)=>{
-        const photo=getPhoto(r);
-        const ts=typeStyle(r.type_plat);
-        const rs=r.regime?regimeStyle(r.regime):null;
-        const av=avisIcon(r.avis);
-        html+=`<div class="recipe-card ${items.length===1?'full':''}" onclick="openSheet('${r.id}')">
-          <div class="card-img-wrap">
-            <img class="card-img" src="${photo}" loading="lazy" onerror="this.src='https://source.unsplash.com/400x300/?food&sig=${j}'">
-            <div class="card-img-overlay"></div>
-            ${av?`<div class="card-avis">${av}</div>`:''}
-            <div class="card-type-badge" style="background:${ts.bg};color:${ts.color}">${ts.label}</div>
-          </div>
-          <div class="card-body">
-            <div class="card-title">${r.titre}</div>
-            <div class="card-meta">
-              ${rs?`<span class="card-tag" style="background:${rs.bg};color:${rs.c}">${r.regime}</span>`:''}
-              ${r.cuisine?`<span class="card-tag" style="background:rgba(0,0,0,0.06);color:#555">${r.cuisine}</span>`:''}
-            </div>
-          </div>
-        </div>`;
-      });
-      html+=`</div>`;
-    }
-  });
+    });
+    html+=`</div>`;
+  }
+
+  // ── STRIP toutes les semaines ───────────────────────────────
+  html+=`<div class="weeks-strip-head">Toutes les semaines</div>`;
+  html+=`<div class="weeks-strip" id="weeks-strip">`;
+  for(let i=1; i<=52; i++){
+    const cls=['week-chip'];
+    if(i===cur) cls.push('current');
+    if(i===w) cls.push('selected');
+    const emoji=weekEmoji(i) || '📅';
+    const has=bw[i] && bw[i].length>0;
+    html+=`<button class="${cls.join(' ')}" data-week="${i}" onclick="goToWeek(${i})">
+      <span class="week-chip-emoji">${emoji}</span>
+      <span class="week-chip-num">S${String(i).padStart(2,'0')}</span>
+      ${has?`<span class="week-chip-dot"></span>`:''}
+    </button>`;
+  }
+  html+=`</div>`;
 
   document.getElementById('loader-s').style.display='none';
   document.getElementById('semaines-content').innerHTML=html;
+
+  // Recentre la chip sélectionnée dans le strip
+  requestAnimationFrame(()=>{
+    const strip=document.getElementById('weeks-strip');
+    if(!strip) return;
+    const sel=strip.querySelector(`.week-chip[data-week="${w}"]`);
+    if(sel){
+      const left=sel.offsetLeft-(strip.clientWidth-sel.clientWidth)/2;
+      strip.scrollTo({ left: Math.max(0, left), behavior: 'instant' in window.scrollTo ? 'instant' : 'auto' });
+    }
+  });
 }
 
 function buildCatalogue(){
