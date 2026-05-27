@@ -26,14 +26,22 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --nav-h: 50px;
 }
-html { height: 100%; }
+html {
+  height: 100%;
+  background: var(--white); /* filet de sécurité : si iOS laisse un gap sous la nav, il sera blanc et non beige */
+}
 body {
   font-family: var(--f);
   background: var(--bg);
   color: var(--label);
   max-width: 430px;
   margin: 0 auto;
+  /* Cascade de fallbacks pour la hauteur du viewport : iOS PWA est
+     capricieux avec dvh dans certains états. lvh = largest viewport,
+     équivalent à la taille pleine de l'écran en mode standalone. */
+  height: 100vh;
   height: 100dvh;
+  height: 100lvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -57,6 +65,18 @@ body {
   height: calc(var(--nav-h) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
   z-index: 50;
+}
+/* Filet de sécurité : prolonge le fond blanc de la nav vers le bas
+   pour couvrir toute zone "fantôme" entre la nav et le vrai bord
+   de l'écran en mode PWA iOS */
+.bottom-nav::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0; right: 0;
+  height: 200px;
+  background: var(--white);
+  pointer-events: none;
 }
 .nav-btn {
   flex: 1;
