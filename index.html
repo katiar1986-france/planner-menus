@@ -211,36 +211,48 @@ body {
   background: linear-gradient(to bottom, transparent 55%, rgba(0,0,0,0.22) 100%);
 }
 .card-avis {
-  position: absolute; top: 12px; right: 12px;
-  width: 30px; height: 30px; border-radius: 50%;
+  position: absolute; top: 12px; left: 12px;
+  width: 28px; height: 28px; border-radius: 50%;
   background: white; display: flex; align-items: center; justify-content: center;
-  font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
 .card-check {
-  position: absolute; top: 10px; left: 10px;
-  width: 34px; height: 34px; border-radius: 50%;
-  background: rgba(255,255,255,0.92);
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  border: 1.5px solid rgba(0,0,0,0.06); cursor: pointer;
+  position: absolute; top: 11px; right: 11px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  backdrop-filter: blur(10px) saturate(1.4);
+  border: 1.5px solid rgba(255,255,255,0.85);
+  cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  font-size: 16px; color: rgba(0,0,0,0); font-weight: 900;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.16);
-  transition: transform 0.12s, background 0.18s, color 0.18s, border-color 0.18s;
+  font-size: 13px; color: rgba(255,255,255,0); font-weight: 900;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
   padding: 0; line-height: 1;
+  z-index: 3;
 }
-.card-check:active { transform: scale(0.88); }
+.card-check:hover { background: rgba(255,255,255,0.75); }
+.card-check:active { transform: scale(0.82); }
 .card-check.checked {
   background: #34C759;
   border-color: #34C759;
   color: white;
-  box-shadow: 0 3px 12px rgba(52,199,89,0.45);
+  box-shadow: 0 3px 10px rgba(52,199,89,0.5), inset 0 0 0 2px rgba(255,255,255,0.15);
+  transform: scale(1.06);
 }
-.recipe-card.done {
-  opacity: 0.55;
-  transition: opacity 0.28s ease;
+.card-check.checked:active { transform: scale(0.94); }
+
+/* État "terminée" : filtre sombre sur la carte, contenu reste lisible */
+.recipe-card.done { transition: transform 0.25s ease; }
+.recipe-card.done::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.45);
+  border-radius: var(--radius);
+  pointer-events: none;
+  z-index: 2;
 }
-.recipe-card.done .card-img { filter: grayscale(0.7) saturate(0.7); transition: filter 0.28s ease; }
-.recipe-card.done .card-title { text-decoration: line-through; text-decoration-color: rgba(0,0,0,0.3); }
 .card-type-badge {
   position: absolute; bottom: 12px; left: 12px;
   padding: 4px 10px; border-radius: 8px;
