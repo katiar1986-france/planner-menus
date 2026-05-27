@@ -51,10 +51,9 @@ body {
   width: 100%; max-width: 430px;
   display: flex;
   align-items: stretch;
-  background: rgba(255,255,255,0.94);
-  -webkit-backdrop-filter: blur(16px) saturate(1.6);
-  backdrop-filter: blur(16px) saturate(1.6);
-  border-top: 1px solid var(--sep);
+  background: var(--white);
+  border-top: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 -4px 18px rgba(0,0,0,0.06);
   height: calc(var(--nav-h) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
   z-index: 50;
@@ -253,6 +252,31 @@ body {
   pointer-events: none;
   z-index: 2;
 }
+
+/* Placeholder photo : quand la recette n'a pas de photo_url, on rend un
+   bloc dégradé chaleureux avec un emoji thématique au centre */
+.img-placeholder {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #F5E6D8 0%, #ECD4BC 55%, #E5C8A8 100%);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.img-placeholder::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at 28% 22%, rgba(255,255,255,0.35), transparent 55%);
+  pointer-events: none;
+}
+.ph-emoji {
+  font-size: 56px;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.12));
+  line-height: 1;
+  z-index: 1;
+}
+.week-hero .img-placeholder { background: linear-gradient(135deg, #ECDDC8 0%, #DCC7A6 100%); }
+.week-hero .ph-emoji { font-size: 110px; opacity: 0.65; }
+.cat-img-wrap .ph-emoji { font-size: 36px; }
+.sheet-photo.img-placeholder { height: 240px; }
+.sheet-photo.img-placeholder .ph-emoji { font-size: 82px; }
 .card-type-badge {
   position: absolute; bottom: 12px; left: 12px;
   padding: 4px 10px; border-radius: 8px;
@@ -551,38 +575,55 @@ const SM={
   Automne:{emoji:'🍂',color:'#d0521a',bg:'rgba(208,82,26,0.15)'},
 };
 
+// Retourne l'URL de la photo perso si elle existe, sinon null.
+// (L'ancien fallback Unsplash a été retiré : source.unsplash.com a été
+// déprécié et renvoyait des images cassées. On utilise désormais
+// `imgOrPlaceholder` pour générer un placeholder dégradé + emoji.)
 function getPhoto(r){
-  // Si la recette a une photo perso uploadée, on l'utilise.
   if(r && r.photo_url && typeof r.photo_url === 'string' && r.photo_url.trim()) return r.photo_url;
-  const titre = (r && r.titre) || '';
-  const types = (r && r.type_plat) || [];
-  const t=titre.toLowerCase(),ty=(types||[]).join(' ').toLowerCase();
-  const id=Math.abs([...titre].reduce((a,c)=>a+c.charCodeAt(0),0))%40+1;
-  const seeds=[
-    [['soupe','velouté','bouillon'],'soup+bowl'],
-    [['lasagne'],'lasagna+baked'],
-    [['gratin'],'gratin+baked+dish'],
-    [['risotto'],'risotto+italian'],
-    [['salade','caesar'],'salad+fresh'],
-    [['tarte','quiche','clafoutis','feuilleté'],'tart+quiche'],
-    [['cake'],'savory+cake'],
-    [['pâtes','spaghetti','penne','farfalle','gnocchi','ravioles','crozets','tagliatelle'],'pasta+italian'],
-    [['poulet','dinde'],'chicken+dish'],
-    [['boeuf','agneau','porc','veau','filet','paupiette','blanquette','bourguignon','osso','rôti'],'meat+dish'],
-    [['saumon','truite','poisson','cabillaud','crevette','colin'],'fish+seafood'],
-    [['curry'],'curry+bowl'],
-    [['riz','wok','ramen','pho','bibimbap'],'asian+rice+bowl'],
-    [['nouilles'],'noodles+asian'],
-    [['couscous','tajine'],'moroccan+tagine'],
-    [['tacos'],'tacos+mexican'],
-    [['burger'],'burger'],
-    [['dessert','gâteau','crêpe','pancake'],'dessert+cake'],
-    [['brochette','bbq'],'grilled+bbq'],
-    [['poke','bowl'],'poke+bowl'],
-    [['bo bun'],'vietnamese+bowl'],
+  return null;
+}
+
+function recipeEmoji(r){
+  const t = ((r && r.titre) || '').toLowerCase();
+  const ty = ((r && r.type_plat) || []).join(' ').toLowerCase();
+  const s = t + ' ' + ty;
+  const map = [
+    [['soupe','velouté','bouillon'], '🍲'],
+    [['lasagne'], '🥘'],
+    [['gratin'], '🧀'],
+    [['risotto'], '🍚'],
+    [['salade','caesar'], '🥗'],
+    [['quiche','tarte','clafoutis','feuilleté'], '🥧'],
+    [['cake'], '🎂'],
+    [['pâtes','spaghetti','penne','farfalle','gnocchi','ravioles','crozets','tagliatelle','nouilles'], '🍝'],
+    [['poulet','dinde'], '🍗'],
+    [['boeuf','agneau','porc','veau','paupiette','blanquette','bourguignon','osso','rôti','jambon','filet'], '🥩'],
+    [['saumon','truite','cabillaud','colin','poisson'], '🐟'],
+    [['crevette','fruits de mer'], '🦐'],
+    [['curry'], '🍛'],
+    [['ramen','pho','bibimbap'], '🍜'],
+    [['riz','wok'], '🍚'],
+    [['couscous','tajine'], '🥘'],
+    [['tacos'], '🌮'],
+    [['burger'], '🍔'],
+    [['dessert','gâteau','crêpe','pancake'], '🍰'],
+    [['brochette','bbq'], '🍢'],
+    [['poke','bowl'], '🥣'],
+    [['oeuf','œuf','omelette'], '🍳'],
+    [['fromage','feta','mozzarella','chèvre','parmesan','reblochon','boursin'], '🧀'],
+    [['légume','crudité','végé','vegan','epinard','épinard','chou','brocoli'], '🥬'],
   ];
-  for(const[keys,q]of seeds){if(keys.some(k=>t.includes(k)||ty.includes(k)))return`https://source.unsplash.com/400x300/?${q}&sig=${id}`;}
-  return`https://source.unsplash.com/400x300/?food,plat&sig=${id}`;
+  for (const [keys, emoji] of map) {
+    if (keys.some(k => s.includes(k))) return emoji;
+  }
+  return '🥘';
+}
+
+function imgOrPlaceholder(r, imgClass){
+  const url = getPhoto(r);
+  if (url) return `<img class="${imgClass}" src="${url}" loading="lazy">`;
+  return `<div class="${imgClass} img-placeholder"><span class="ph-emoji">${recipeEmoji(r)}</span></div>`;
 }
 
 function typeStyle(types){
@@ -684,7 +725,11 @@ function buildSemaines(){
     const da=isDone(a.id,w)?1:0, db=isDone(b.id,w)?1:0;
     return da-db;
   });
-  const heroPhoto=items.length?getPhoto(items[0]):`https://source.unsplash.com/800x500/?cooking,${encodeURIComponent(s.toLowerCase())}&sig=${w}`;
+  // Hero : on prend la première recette qui a une vraie photo. Sinon, placeholder dégradé + emoji de saison.
+  const heroWithPhoto = items.find(r => r && r.photo_url && r.photo_url.trim());
+  const heroMarkup = heroWithPhoto
+    ? `<img class="week-hero-img" src="${heroWithPhoto.photo_url}" loading="lazy">`
+    : `<div class="week-hero-img img-placeholder"><span class="ph-emoji">${sm.emoji}</span></div>`;
   const label=WL[w]||`Semaine ${w}`;
 
   // Eyebrow + sub (date)
@@ -712,7 +757,7 @@ function buildSemaines(){
   // ── HERO ─────────────────────────────────────────────────────
   html+=`
     <div class="week-hero anim">
-      <img class="week-hero-img" src="${heroPhoto}" loading="lazy" onerror="this.src='https://source.unsplash.com/800x500/?cooking&sig=99'">
+      ${heroMarkup}
       <div class="week-hero-overlay"></div>
       ${w!==cur?`<button class="today-pill" onclick="goToWeek(${cur})">Aujourd'hui ⤴</button>`:''}
       <div class="week-hero-content">
@@ -721,7 +766,7 @@ function buildSemaines(){
         <div class="week-hero-sub">${sub}</div>
         <div class="week-hero-tags">
           <span class="saison-tag" style="background:${sm.bg};color:${sm.color}">${sm.emoji} ${s}</span>
-          ${items.length?`<span class="count-tag">🍽️ ${countLabel}</span>`:''}
+          ${items.length?`<span class="count-tag">${countLabel}</span>`:''}
         </div>
       </div>
     </div>`;
@@ -751,14 +796,13 @@ function buildSemaines(){
   } else {
     html+=`<div class="recipes-list">`;
     items.forEach((r,j)=>{
-      const photo=getPhoto(r);
       const ts=typeStyle(r.type_plat);
       const rs=r.regime?regimeStyle(r.regime):null;
       const av=avisIcon(r.avis);
       const done=isDone(r.id,w);
       html+=`<div class="recipe-card anim${done?' done':''}" style="animation-delay:${0.1+j*0.04}s" onclick="openSheet('${r.id}')">
         <div class="card-img-wrap">
-          <img class="card-img" src="${photo}" loading="lazy" onerror="this.src='https://source.unsplash.com/600x400/?food&sig=${j}'">
+          ${imgOrPlaceholder(r, 'card-img')}
           <div class="card-img-overlay"></div>
           <button class="card-check${done?' checked':''}" aria-label="${done?'Décocher':'Marquer comme fait'}" onclick="toggleDone(event,'${r.id}',${w})">✓</button>
           ${av?`<div class="card-avis">${av}</div>`:''}
@@ -819,12 +863,11 @@ function renderCat(items){
   const g=document.getElementById('cat-grid');
   if(!items.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#aaa;font-size:14px;font-weight:600">Aucune recette trouvée</div>';return;}
   g.innerHTML=items.map((r,i)=>{
-    const photo=getPhoto(r);
     const ts=typeStyle(r.type_plat);
     const av=avisIcon(r.avis);
     return`<div class="cat-card" onclick="openSheet('${r.id}')">
       <div class="cat-img-wrap">
-        <img class="cat-img" src="${photo}" loading="lazy" onerror="this.src='https://source.unsplash.com/300x200/?food&sig=${i}'">
+        ${imgOrPlaceholder(r, 'cat-img')}
         ${av?`<div class="cat-avis">${av}</div>`:''}
       </div>
       <div class="cat-body">
@@ -857,15 +900,18 @@ function openSheet(id){
   const r=all.find(x=>String(x.id)===String(id));
   if(!r){console.warn('Recette non trouvée:',id);return;}
   currentSheetId=id;
-  const photo=getPhoto(r);
+  const url=getPhoto(r);
   const ts=typeStyle(r.type_plat);
   const rs=r.regime?regimeStyle(r.regime):null;
   const av=avisIcon(r.avis);
   const semLabel=(r.semaines||[]).join(' · ')||'—';
+  const photoMarkup=url
+    ? `<img class="sheet-photo" id="sheet-photo-img" src="${url}" loading="lazy">`
+    : `<div class="sheet-photo img-placeholder" id="sheet-photo-img"><span class="ph-emoji">${recipeEmoji(r)}</span></div>`;
 
   document.getElementById('sheet-body').innerHTML=`
     <div class="sheet-photo-wrap">
-      <img class="sheet-photo" id="sheet-photo-img" src="${photo}" loading="lazy" onerror="this.src='https://source.unsplash.com/800x400/?food&sig=0'">
+      ${photoMarkup}
       <div class="sheet-photo-overlay"></div>
       <button class="sheet-close" onclick="closeSheet()">✕</button>
       <div class="sheet-photo-title">${r.titre}</div>
@@ -928,10 +974,14 @@ async function handlePhotoUpload(file, recetteId, btn){
     // Update local state
     const r=all.find(x=>String(x.id)===String(recetteId));
     if(r) r.photo_url=url;
-    // Refresh the sheet photo immediately (with cache-bust)
-    const imgEl=document.getElementById('sheet-photo-img');
-    if(imgEl) imgEl.src=url;
-    // Refresh both screens
+    // Remplace l'élément photo : peut être <img> ou <div> placeholder selon avant/après
+    const wrap=document.querySelector('.sheet-photo-wrap');
+    if(wrap){
+      const old=wrap.querySelector('.sheet-photo');
+      if(old) old.remove();
+      wrap.insertAdjacentHTML('afterbegin', `<img class="sheet-photo" id="sheet-photo-img" src="${url}" loading="lazy">`);
+    }
+    // Rafraîchit les deux écrans
     buildSemaines();
     filterCat();
     btn.classList.remove('busy');
