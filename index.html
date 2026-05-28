@@ -443,27 +443,78 @@ body {
   background: #E0E0E0; margin: 12px auto 0;
   flex-shrink: 0;
 }
-.sheet-photo-wrap { position: relative; margin-top: 12px; }
-.sheet-photo { width: 100%; height: 240px; object-fit: cover; }
+.sheet-photo-wrap { position: relative; margin-top: 12px; overflow: hidden; }
+.sheet-photo { width: 100%; height: 260px; object-fit: cover; }
 .sheet-photo-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.6) 100%);
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, transparent 30%, transparent 45%, rgba(0,0,0,0.7) 100%);
+  pointer-events: none;
 }
+/* Boutons flottants sur la photo */
 .sheet-close {
-  position: absolute; top: 12px; right: 14px;
+  position: absolute; top: 14px; right: 14px;
   width: 32px; height: 32px; border-radius: 50%;
-  background: rgba(0,0,0,0.35); border: none; cursor: pointer;
+  background: rgba(0,0,0,0.4); border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  color: white; font-size: 15px; font-weight: 700;
-  backdrop-filter: blur(4px);
+  color: white; font-size: 14px; font-weight: 700;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  z-index: 5;
+  transition: transform 0.12s;
+}
+.sheet-close:active { transform: scale(0.9); }
+.sheet-modify-btn {
+  position: absolute; top: 14px; left: 14px;
+  background: rgba(255,255,255,0.94);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  border: none; cursor: pointer;
+  padding: 7px 13px; border-radius: 22px;
+  font-family: var(--f); font-size: 12px; font-weight: 800;
+  color: var(--label);
+  display: inline-flex; align-items: center; gap: 5px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  z-index: 5;
+  transition: transform 0.12s;
+}
+.sheet-modify-btn:active { transform: scale(0.94); }
+.sheet-photo-change {
+  position: absolute; top: 14px; right: 56px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(0,0,0,0.4);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border: none; cursor: pointer;
+  color: white; font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 5;
+  transition: transform 0.12s, background 0.2s;
+  padding: 0;
+}
+.sheet-photo-change:active { transform: scale(0.9); }
+.sheet-photo-change.busy { opacity: 0.7; cursor: progress; }
+.sheet-photo-change.ok { background: #34C759; }
+.sheet-photo-change.err { background: #DC2626; }
+
+/* Bloc bas de la photo : tags + titre */
+.sheet-photo-content {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 18px 20px 20px;
+  z-index: 4;
+}
+.sheet-photo-tags {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  margin-bottom: 10px;
+}
+.sheet-photo-tag {
+  padding: 4px 10px; border-radius: 8px;
+  font-size: 11px; font-weight: 800;
+  white-space: nowrap;
+  background: rgba(255,255,255,0.96);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
 .sheet-photo-title {
-  position: absolute; bottom: 0; left: 0; right: 0; padding: 20px;
-  font-size: 22px; font-weight: 900; color: white;
-  letter-spacing: -0.3px; line-height: 1.2;
+  font-size: 24px; font-weight: 900; color: white;
+  letter-spacing: -0.4px; line-height: 1.15;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.4);
 }
-.sheet-meta { padding: 16px 20px 4px; display: flex; flex-wrap: wrap; gap: 8px; }
-.sheet-tag { padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; }
 .sheet-section { padding: 16px 20px; border-top: 1px solid var(--sep); }
 .sheet-section-label {
   font-size: 11px; font-weight: 800; text-transform: uppercase;
@@ -844,6 +895,7 @@ function goToWeek(w){
 
 async function init(){
   loadDone();
+  bindSheetSwipe();
   const res=await fetch(`${SB}/rest/v1/recettes?select=*&limit=300`,{headers:{'apikey':KEY,'Authorization':`Bearer ${KEY}`}});
   all=await res.json();
   buildSemaines();
@@ -1057,24 +1109,24 @@ function openSheet(id){
     <div class="sheet-photo-wrap">
       ${photoMarkup}
       <div class="sheet-photo-overlay"></div>
-      <button class="sheet-close" onclick="closeSheet()">✕</button>
-      <div class="sheet-photo-title">${r.titre}</div>
-    </div>
-    <div class="sheet-actions">
-      <button class="sheet-action-btn photo-edit-btn" id="photo-edit-btn" type="button">
-        <span>📷</span><span id="photo-edit-label">${r.photo_url?'Photo':'Photo'}</span>
-      </button>
-      <input type="file" id="photo-input" accept="image/*" hidden>
-      <button class="sheet-action-btn primary" type="button" onclick="openRecipeForm('${r.id}')">
+      <button class="sheet-modify-btn" type="button" onclick="openRecipeForm('${r.id}')">
         <span>✏️</span><span>Modifier</span>
       </button>
+      <button class="sheet-photo-change" id="photo-edit-btn" type="button" aria-label="Modifier la photo">📷</button>
+      <input type="file" id="photo-input" accept="image/*" hidden>
+      <button class="sheet-close" onclick="closeSheet()" aria-label="Fermer">✕</button>
+      <div class="sheet-photo-content">
+        <div class="sheet-photo-tags">
+          <span class="sheet-photo-tag" style="color:${ts.color}">${ts.label}</span>
+          ${rs?`<span class="sheet-photo-tag" style="color:${rs.c}">${r.regime}</span>`:''}
+          ${r.cuisine?`<span class="sheet-photo-tag" style="color:#555">🍴 ${r.cuisine}</span>`:''}
+          ${av?`<span class="sheet-photo-tag" style="color:#555">${r.avis}</span>`:''}
+        </div>
+        <div class="sheet-photo-title">${r.titre}</div>
+      </div>
     </div>
-    <div class="sheet-meta">
-      <span class="sheet-tag" style="background:${ts.bg};color:${ts.color}">${ts.label}</span>
-      ${rs?`<span class="sheet-tag" style="background:${rs.bg};color:${rs.c}">${r.regime}</span>`:''}
-      ${r.cuisine?`<span class="sheet-tag" style="background:rgba(0,0,0,0.06);color:#555">🍴 ${r.cuisine}</span>`:''}
-      ${av?`<span class="sheet-tag" style="background:rgba(0,0,0,0.06);color:#555">${r.avis}</span>`:''}
-    </div>
+    ${r.ingredients?`<div class="sheet-section"><div class="sheet-section-label">Ingrédients</div><div class="sheet-section-text">${r.ingredients}</div></div>`:''}
+    ${r.recette_ecrite?`<div class="sheet-section"><div class="sheet-section-label">Recette</div><div class="sheet-section-text">${r.recette_ecrite}</div></div>`:''}
     <div class="sheet-section">
       <div class="sheet-section-label">Saisons</div>
       <div class="sheet-semaines">${(r.saison||[]).join(', ')||'—'}</div>
@@ -1083,8 +1135,6 @@ function openSheet(id){
       <div class="sheet-section-label">Semaines planifiées</div>
       <div class="sheet-semaines">${semLabel}</div>
     </div>
-    ${r.ingredients?`<div class="sheet-section"><div class="sheet-section-label">Ingrédients</div><div class="sheet-section-text">${r.ingredients}</div></div>`:''}
-    ${r.recette_ecrite?`<div class="sheet-section"><div class="sheet-section-label">Recette</div><div class="sheet-section-text">${r.recette_ecrite}</div></div>`:''}
     <div class="sheet-pb"></div>
   `;
 
@@ -1110,12 +1160,10 @@ function openSheet(id){
 }
 
 async function handlePhotoUpload(file, recetteId, btn){
-  const label=document.getElementById('photo-edit-label');
-  const setLabel=(t)=>{ if(label) label.textContent=t; };
   btn.classList.remove('ok','err');
   btn.classList.add('busy');
   btn.disabled=true;
-  setLabel('Upload en cours…');
+  btn.innerHTML='⏳';
   try{
     const url=await uploadRecettePhoto(file, recetteId);
     // Update local state
@@ -1133,18 +1181,22 @@ async function handlePhotoUpload(file, recetteId, btn){
     filterCat();
     btn.classList.remove('busy');
     btn.classList.add('ok');
-    setLabel('Photo mise à jour ✓');
+    btn.innerHTML='✓';
     setTimeout(()=>{
       btn.classList.remove('ok');
       btn.disabled=false;
-      setLabel('Remplacer la photo');
-    }, 1800);
+      btn.innerHTML='📷';
+    }, 1500);
   } catch(err){
     console.error('Upload photo:', err);
     btn.classList.remove('busy');
     btn.classList.add('err');
-    setLabel('Erreur — réessayer');
+    btn.innerHTML='⚠️';
     btn.disabled=false;
+    setTimeout(()=>{
+      btn.classList.remove('err');
+      btn.innerHTML='📷';
+    }, 2200);
   }
 }
 
@@ -1186,9 +1238,74 @@ async function uploadRecettePhoto(file, recetteId){
 }
 
 function closeSheet(){
-  document.getElementById('sheet').classList.remove('open');
-  document.getElementById('overlay').classList.remove('open');
+  const sheet=document.getElementById('sheet');
+  const overlay=document.getElementById('overlay');
+  // Si on a un transform inline (swipe en cours), on anime depuis la position courante
+  sheet.style.transition='';
+  if(sheet.style.transform){
+    sheet.style.transform='translateX(-50%) translateY(102%)';
+    setTimeout(()=>{ sheet.style.transform=''; }, 350);
+  }
+  sheet.classList.remove('open');
+  overlay.classList.remove('open');
+  overlay.style.opacity='';
   currentSheetId=null;
+}
+
+// ── Swipe down to dismiss (sheet) ────────────────────────────────────────
+function bindSheetSwipe(){
+  const sheet=document.getElementById('sheet');
+  const overlay=document.getElementById('overlay');
+  let startY=0, lastY=0, dragging=false, dragStart=0;
+  const SWIPE_THRESHOLD=120; // px
+
+  sheet.addEventListener('touchstart', (e)=>{
+    // Ne pas démarrer un swipe si l'utilisateur est en train de scroller le contenu
+    if(sheet.scrollTop>0){ dragging=false; return; }
+    if(!sheet.classList.contains('open')){ dragging=false; return; }
+    startY=e.touches[0].clientY;
+    lastY=startY;
+    dragStart=Date.now();
+    dragging=true;
+    sheet.style.transition='none';
+  }, { passive: true });
+
+  sheet.addEventListener('touchmove', (e)=>{
+    if(!dragging) return;
+    const y=e.touches[0].clientY;
+    lastY=y;
+    const diff=y-startY;
+    if(diff<0){
+      // Swipe vers le haut : on annule
+      sheet.style.transform='';
+      overlay.style.opacity='';
+      sheet.style.transition='';
+      dragging=false;
+      return;
+    }
+    // Suit le doigt
+    sheet.style.transform=`translateX(-50%) translateY(${diff}px)`;
+    // Fade léger de l'overlay
+    overlay.style.opacity=String(Math.max(0.15, 1 - diff/500));
+  }, { passive: true });
+
+  const endHandler=()=>{
+    if(!dragging) return;
+    dragging=false;
+    sheet.style.transition='';
+    const diff=lastY-startY;
+    const elapsed=Date.now()-dragStart;
+    const fastFlick=elapsed<300 && diff>50;
+    if(diff>SWIPE_THRESHOLD || fastFlick){
+      closeSheet();
+    } else {
+      // Snap back
+      sheet.style.transform='';
+      overlay.style.opacity='';
+    }
+  };
+  sheet.addEventListener('touchend', endHandler, { passive: true });
+  sheet.addEventListener('touchcancel', endHandler, { passive: true });
 }
 
 function goTo(name){
