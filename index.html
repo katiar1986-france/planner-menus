@@ -351,10 +351,7 @@ body {
 .week-chip:active { transform: scale(0.94); }
 .week-chip-emoji { font-size: 18px; line-height: 1; }
 .week-chip-num { font-size: 11px; font-weight: 800; color: var(--label2); letter-spacing: 0.02em; }
-.week-chip-dot {
-  position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
-  width: 5px; height: 5px; border-radius: 50%; background: var(--orange);
-}
+/* .week-chip-dot retiré */
 .week-chip.selected { border-color: var(--label); background: #FAFAF6; }
 .week-chip.current .week-chip-num { color: var(--orange); }
 .week-chip.current.selected { border-color: var(--orange); }
@@ -1230,11 +1227,9 @@ function buildSemaines(){
     if(i===cur) cls.push('current');
     if(i===w) cls.push('selected');
     const emoji=weekEmoji(i) || '📅';
-    const has=bw[i] && bw[i].length>0;
     html+=`<button class="${cls.join(' ')}" data-week="${i}" onclick="goToWeek(${i})">
       <span class="week-chip-emoji">${emoji}</span>
       <span class="week-chip-num">S${String(i).padStart(2,'0')}</span>
-      ${has?`<span class="week-chip-dot"></span>`:''}
     </button>`;
   }
   html+=`</div>`;
