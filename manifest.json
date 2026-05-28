@@ -1,6 +1,6 @@
 {
   "name": "OnMangeQuoiMaman?",
-  "short_name": "OnQuoi?",
+  "short_name": "OnMangeQuoi?",
   "description": "Planificateur de menus hebdomadaires",
   "start_url": "./",
   "scope": "./",

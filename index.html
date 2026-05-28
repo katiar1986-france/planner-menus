@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="OnQuoi?">
+<meta name="apple-mobile-web-app-title" content="OnMangeQuoi?">
 <meta name="theme-color" content="#FF6B2E">
 <title>OnMangeQuoiMaman?</title>
 <link rel="manifest" href="manifest.json">
@@ -433,6 +433,23 @@ body {
   font-size: 26px; font-weight: 900; letter-spacing: -0.4px;
   margin-bottom: 12px;
 }
+.planning-header-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+}
+.planning-header-row .planning-title { margin-bottom: 12px; }
+.ios-icon-btn {
+  flex-shrink: 0;
+  background: none; border: none; cursor: pointer;
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--orange);
+  margin-bottom: 8px;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.12s, transform 0.12s;
+}
+.ios-icon-btn:active { opacity: 0.45; transform: scale(0.92); }
 .planning-tabs {
   display: flex; gap: 4px;
   overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
@@ -1317,7 +1334,16 @@ body {
 <!-- SCREEN COURSES -->
 <div class="screen" id="screen-courses">
   <div class="planning-header">
-    <div class="planning-title">Courses</div>
+    <div class="planning-header-row">
+      <div class="planning-title">Courses</div>
+      <button class="ios-icon-btn" onclick="shareShoppingList()" aria-label="Partager la liste de courses">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v13"/>
+          <path d="M7 8l5-5 5 5"/>
+          <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>
+        </svg>
+      </button>
+    </div>
   </div>
   <div class="planning-scroll" id="courses-scroll">
     <div id="courses-content"></div>
@@ -2655,7 +2681,7 @@ function setShoppingView(mode){
 function renderShoppingList(){
   const w = planningWeek;
   const items = (all || []).filter(r => Array.isArray(r.semaines) && r.semaines.some(s => WM[s] === w));
-  let html = weekPickerHTML(w, { showShare: true });
+  let html = weekPickerHTML(w);
   html += `<div class="shopping-view-toggle">
     <button class="shopping-toggle-btn${shoppingView==='agg'?' active':''}" onclick="setShoppingView('agg')">📑 Agrégé</button>
     <button class="shopping-toggle-btn${shoppingView==='recipe'?' active':''}" onclick="setShoppingView('recipe')">📂 Par recette</button>
