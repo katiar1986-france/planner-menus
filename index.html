@@ -16,20 +16,56 @@
 <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fraunces:ital,opsz,wght,SOFT@0,9..144,600..900,30;1,9..144,500..800,30&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 :root {
+  /* ─── Typographies ──────────────────────────────
+     Nunito = UI / lisibilité (nav, chips, formulaires, body)
+     Fraunces = éditorial (gros titres, hero, fiches) — apporte l'âme
+     hand-lettered du logo sans sacrifier la lisibilité petite taille. */
   --f: 'Nunito', sans-serif;
-  --bg: #F5F5F0;
-  --white: #FFFFFF;
-  --label: #111111;
-  --label2: #444444;
-  --label3: #888888;
-  --sep: rgba(0,0,0,0.07);
-  --orange: #FF6B2E;
-  --radius: 18px;
-  --radius-sm: 12px;
+  --f-display: 'Fraunces', 'Nunito', serif;
+
+  /* ─── Palette : extraite du logo ────────────────
+     Bandeau quadrichrome → 4 couleurs signature + neutres papier-encre. */
+  --paper:    #F7EFE2;   /* fond app, crème chaud */
+  --paper-2:  #FFFBF3;   /* surfaces / cards */
+  --paper-3:  #FDF6E9;   /* zones inset (search, textareas) */
+  --white:    #FFFFFF;
+  --bg: var(--paper);
+
+  /* Encre : on remplace le noir froid par un vert sombre tiré du logo */
+  --ink:   #1F3D33;
+  --ink-2: #4A5C54;
+  --ink-3: #8C9690;
+  --label:  var(--ink);
+  --label2: var(--ink-2);
+  --label3: var(--ink-3);
+  --sep: rgba(31, 61, 51, 0.08);
+
+  /* Quadrichromie signature */
+  --orange:      #FF6B2E;   /* action primaire, FAB */
+  --orange-deep: #E8531A;
+  --orange-soft: rgba(255,107,46,0.12);
+  --sapin:       #1F5D4F;   /* état "fait", saison Hiver, secondary */
+  --sapin-soft:  rgba(31,93,79,0.10);
+  --corail:      #E25B4A;   /* delete, coup de cœur, saison Automne */
+  --corail-soft: rgba(226,91,74,0.12);
+  --moutarde:    #F5A623;   /* favoris, étoile cover, saison Printemps */
+  --moutarde-soft: rgba(245,166,35,0.14);
+
+  /* Géométrie : un poil plus généreux qu'avant */
+  --radius:    22px;
+  --radius-sm: 14px;
+  --radius-xs: 10px;
+
+  /* Ombres teintées : chaleur du papier, jamais du gris froid */
+  --shadow-sm: 0 1px 3px rgba(78, 52, 30, 0.07);
+  --shadow:    0 2px 14px rgba(78, 52, 30, 0.09), 0 1px 3px rgba(78, 52, 30, 0.05);
+  --shadow-lg: 0 8px 28px rgba(78, 52, 30, 0.14);
+
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   /* Padding bas de la nav : on garde un min de 8px pour ne pas coller
@@ -37,6 +73,13 @@
      pour gagner de la place. iPhone (~34px) → ~18px. Desktop (0) → 8px. */
   --safe-bottom-tight: max(8px, calc(var(--safe-bottom) - 16px));
   --nav-h: 48px;
+
+  /* Bandeau quadrichromique du logo, réutilisable comme signature. */
+  --rainbow: linear-gradient(90deg,
+    var(--sapin) 0% 25%,
+    var(--corail) 25% 50%,
+    var(--orange) 50% 75%,
+    var(--moutarde) 75% 100%);
 }
 html {
   height: 100%;
@@ -45,6 +88,11 @@ html {
 body {
   font-family: var(--f);
   background: var(--bg);
+  /* Grain papier très subtil — données SVG noise inline (zéro requête).
+     Donne l'âme "carnet de cuisine" du logo sans peser. */
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.12  0 0 0 0 0.24  0 0 0 0 0.20  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-repeat: repeat;
   color: var(--label);
   max-width: 430px;
   margin: 0 auto;
@@ -72,11 +120,23 @@ body {
   display: flex;
   align-items: stretch;
   background: var(--white);
-  border-top: 1px solid rgba(0,0,0,0.08);
-  box-shadow: 0 -4px 18px rgba(0,0,0,0.06);
+  border-top: 1px solid rgba(31, 61, 51, 0.08);
+  box-shadow: 0 -4px 18px rgba(78, 52, 30, 0.08);
   height: calc(var(--nav-h) + var(--safe-bottom-tight));
   padding-bottom: var(--safe-bottom-tight);
   z-index: 50;
+}
+/* Signature visuelle : fine bande quadrichromique du logo au-dessus de
+   la nav, façon ruban de couverture. 2px, presque imperceptible mais
+   ancre fortement l'identité. */
+.bottom-nav::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--rainbow);
+  opacity: 0.85;
+  pointer-events: none;
 }
 /* Filet de sécurité : prolonge le fond blanc de la nav vers le bas
    pour couvrir toute zone "fantôme" entre la nav et le vrai bord
@@ -120,14 +180,18 @@ body {
   position: relative;
 }
 .fab {
-  width: 50px; height: 50px;
+  width: 52px; height: 52px;
   border-radius: 50%;
   background: var(--orange);
   border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 18px rgba(255,107,46,0.45);
+  /* Halo orange chaleureux + 2e ombre profonde pour l'élévation */
+  box-shadow:
+    0 6px 18px rgba(255,107,46,0.45),
+    0 2px 6px rgba(78, 52, 30, 0.18),
+    inset 0 1px 0 rgba(255,255,255,0.22);
   position: relative;
-  top: -12px;
+  top: -14px;
   transition: transform 0.12s, box-shadow 0.12s;
 }
 .fab:active { transform: scale(0.91); box-shadow: 0 2px 8px rgba(255,107,46,0.3); }
@@ -148,23 +212,51 @@ body {
   position: relative; height: 260px; overflow: hidden; flex-shrink: 0;
 }
 .week-hero-img { width: 100%; height: 100%; object-fit: cover; }
+/* Overlay qui glisse du transparent vers le vert sapin du logo plutôt
+   qu'un noir générique : ancre la couleur identitaire et donne du
+   contraste sans assombrir mortellement la photo. */
 .week-hero-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0) 30%, rgba(0,0,0,0.6) 100%);
+  background:
+    linear-gradient(to bottom,
+      rgba(0,0,0,0) 28%,
+      rgba(31, 61, 51, 0.35) 70%,
+      rgba(31, 61, 51, 0.78) 100%);
+}
+/* Trace de fumée décorative reprenant le motif du logo, en watermark
+   très discret dans le coin haut-gauche du hero. */
+.week-hero::after {
+  content: '';
+  position: absolute;
+  top: -10px; left: -10px;
+  width: 110px; height: 110px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='white' stroke-width='6' stroke-linecap='round'><path d='M30 90 Q24 70 36 60 Q48 50 40 32 Q34 18 48 8'/><path d='M52 90 Q46 70 58 60 Q70 50 62 32'/><path d='M72 80 Q66 64 76 56'/></svg>");
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.10;
+  pointer-events: none;
 }
 .week-hero-content {
   position: absolute; bottom: 0; left: 0; right: 0; padding: 22px;
+  z-index: 2;
 }
 .week-hero-eyebrow {
-  font-size: 11px; font-weight: 800; letter-spacing: 0.12em;
-  text-transform: uppercase; color: rgba(255,255,255,0.78); margin-bottom: 6px;
+  font-family: var(--f-display);
+  font-style: italic;
+  font-size: 12.5px; font-weight: 600; letter-spacing: 0.04em;
+  font-variation-settings: "SOFT" 60;
+  color: rgba(255,255,255,0.92); margin-bottom: 4px;
 }
 .week-hero-title {
-  font-size: 30px; font-weight: 900; color: white; letter-spacing: -0.5px; line-height: 1.05;
-  margin-bottom: 6px;
+  font-family: var(--f-display);
+  font-size: 34px; font-weight: 800; color: white;
+  letter-spacing: -0.6px; line-height: 1.02;
+  font-variation-settings: "opsz" 144, "SOFT" 40;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 18px rgba(31, 61, 51, 0.35);
 }
 .week-hero-sub {
-  font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 600;
+  font-size: 13px; color: rgba(255,255,255,0.85); font-weight: 600;
 }
 .week-hero-sub::first-letter { text-transform: uppercase; }
 .week-hero-tags { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
@@ -172,25 +264,27 @@ body {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 5px 11px; border-radius: 20px;
   font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
 }
 .count-tag {
-  background: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.22);
   color: white;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  backdrop-filter: blur(10px) saturate(1.4);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
 }
 
 /* Today pill — flotte sur le hero quand on n'est pas sur la semaine en cours */
 .today-pill {
   position: absolute; top: calc(var(--safe-top) + 12px); right: 14px;
-  background: rgba(255,255,255,0.96);
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  background: rgba(255,255,255,0.97);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4); backdrop-filter: blur(10px) saturate(1.4);
   border: none; cursor: pointer;
   padding: 8px 14px; border-radius: 22px;
   font-family: var(--f); font-size: 12px; font-weight: 800;
-  color: var(--label);
+  color: var(--ink);
   display: inline-flex; align-items: center; gap: 4px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  box-shadow: 0 4px 16px rgba(31, 61, 51, 0.22), inset 0 0 0 1px rgba(31, 61, 51, 0.06);
   transition: transform 0.12s;
   z-index: 5;
 }
@@ -202,17 +296,18 @@ body {
 }
 .week-nav-btn {
   flex: 1; min-width: 0;
-  background: white;
+  background: var(--paper-2);
   border: 1px solid var(--sep);
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
   padding: 10px 12px;
   font-family: var(--f);
   cursor: pointer;
   display: flex; align-items: center; gap: 10px;
   transition: transform 0.12s, background 0.12s;
   text-align: left;
+  box-shadow: var(--shadow-sm);
 }
-.week-nav-btn:active { transform: scale(0.97); background: #FAFAF6; }
+.week-nav-btn:active { transform: scale(0.97); background: var(--paper-3); }
 .week-nav-btn.next { justify-content: flex-end; text-align: right; }
 .week-nav-arrow { font-size: 16px; color: var(--label3); font-weight: 800; flex-shrink: 0; }
 .week-nav-label { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
@@ -228,8 +323,8 @@ body {
 /* Recettes en cartes pleine largeur */
 .recipes-list { padding: 18px 16px 0; display: flex; flex-direction: column; gap: 14px; }
 .recipe-card {
-  background: var(--white); border-radius: var(--radius); overflow: hidden;
-  box-shadow: 0 2px 14px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
+  background: var(--paper-2); border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--shadow);
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
   position: relative;
@@ -266,10 +361,10 @@ body {
 .card-check:hover { background: rgba(255,255,255,0.75); }
 .card-check:active { transform: scale(0.82); }
 .card-check.checked {
-  background: #34C759;
-  border-color: #34C759;
+  background: var(--sapin);
+  border-color: var(--sapin);
   color: white;
-  box-shadow: 0 3px 10px rgba(52,199,89,0.5), inset 0 0 0 2px rgba(255,255,255,0.15);
+  box-shadow: 0 3px 10px rgba(31, 93, 79, 0.5), inset 0 0 0 2px rgba(255,255,255,0.15);
   transform: scale(1.06);
 }
 .card-check.checked:active { transform: scale(0.94); }
@@ -289,7 +384,8 @@ body {
    bloc dégradé chaleureux avec un emoji thématique au centre */
 .img-placeholder {
   width: 100%; height: 100%;
-  background: linear-gradient(135deg, #F5E6D8 0%, #ECD4BC 55%, #E5C8A8 100%);
+  /* Dégradé crème → blé chaleureux, dans la même famille que paper/paper-2 */
+  background: linear-gradient(135deg, #FBEFD8 0%, #F1DDB6 55%, #E7CB97 100%);
   display: flex; align-items: center; justify-content: center;
   position: relative; overflow: hidden;
 }
@@ -304,7 +400,7 @@ body {
   line-height: 1;
   z-index: 1;
 }
-.week-hero .img-placeholder { background: linear-gradient(135deg, #ECDDC8 0%, #DCC7A6 100%); }
+.week-hero .img-placeholder { background: linear-gradient(135deg, #F1DDB6 0%, #D9BC8C 100%); }
 .week-hero .ph-emoji { font-size: 110px; opacity: 0.65; }
 .cat-img-wrap .ph-emoji { font-size: 36px; }
 .sheet-photo.img-placeholder { height: 240px; }
@@ -326,10 +422,13 @@ body {
 /* Empty state */
 .empty-state {
   margin: 4px 16px;
-  background: white; border-radius: var(--radius);
+  background: var(--paper-2); border-radius: var(--radius);
   padding: 32px 20px; text-align: center;
   color: var(--label3); font-size: 14px; font-weight: 600;
-  border: 1px dashed rgba(0,0,0,0.1);
+  font-family: var(--f-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 80;
+  border: 1.5px dashed rgba(31, 61, 51, 0.14);
 }
 
 /* Strip toutes les semaines */
@@ -345,9 +444,9 @@ body {
 .weeks-strip::-webkit-scrollbar { display: none; }
 .week-chip {
   flex-shrink: 0;
-  background: white;
+  background: var(--paper-2);
   border: 1.5px solid transparent;
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
   padding: 10px 8px 9px;
   min-width: 64px;
   font-family: var(--f);
@@ -355,12 +454,12 @@ body {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   transition: transform 0.12s, background 0.12s, border-color 0.12s;
   position: relative;
+  box-shadow: var(--shadow-sm);
 }
 .week-chip:active { transform: scale(0.94); }
 .week-chip-emoji { font-size: 18px; line-height: 1; }
 .week-chip-num { font-size: 11px; font-weight: 800; color: var(--label2); letter-spacing: 0.02em; }
-/* .week-chip-dot retiré */
-.week-chip.selected { border-color: var(--label); background: #FAFAF6; }
+.week-chip.selected { border-color: var(--ink); background: var(--paper-3); }
 .week-chip.current .week-chip-num { color: var(--orange); }
 .week-chip.current.selected { border-color: var(--orange); }
 
@@ -371,17 +470,37 @@ body {
   background: var(--white);
   padding: calc(var(--safe-top) + 12px) 20px 12px;
   border-bottom: 1px solid var(--sep); flex-shrink: 0;
+  position: relative;
 }
-.catalogue-title { font-size: 26px; font-weight: 900; letter-spacing: -0.4px; margin-bottom: 12px; }
+/* Signature quadrichromique fine en bas du header — rappelle le logo
+   sans crier. Mêmes 2px que la nav, miroir visuel. */
+.catalogue-header::after, .planning-header::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 2px;
+  background: var(--rainbow);
+  opacity: 0.80;
+  pointer-events: none;
+}
+.catalogue-title {
+  font-family: var(--f-display);
+  font-size: 30px; font-weight: 800;
+  font-variation-settings: "opsz" 144, "SOFT" 50;
+  letter-spacing: -0.6px; margin-bottom: 12px;
+  color: var(--ink);
+}
 .search-input-wrap { position: relative; }
 .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; }
 .search-input {
-  width: 100%; padding: 11px 12px 11px 36px;
-  border: none; border-radius: var(--radius-sm);
-  background: #F0F0F0;
+  width: 100%; padding: 12px 12px 12px 36px;
+  border: 1px solid var(--sep); border-radius: var(--radius-sm);
+  background: var(--paper-3);
   font-family: var(--f); font-size: 15px; font-weight: 600;
   outline: none; color: var(--label);
+  transition: border-color 0.15s, background 0.15s;
 }
+.search-input:focus { border-color: var(--orange); background: var(--white); }
 .search-input::placeholder { color: var(--label3); font-weight: 500; }
 .filter-row {
   display: flex; gap: 8px; padding: 12px 20px 0;
@@ -391,11 +510,18 @@ body {
 .filter-row-season { padding-top: 8px; padding-bottom: 4px; }
 .filter-chip {
   flex-shrink: 0; padding: 7px 14px; border-radius: 20px;
-  border: none; background: #F0F0F0;
+  border: 1px solid transparent;
+  background: var(--paper-3);
+  color: var(--ink-2);
   font-family: var(--f); font-size: 12px; font-weight: 800;
   cursor: pointer; transition: all 0.15s; white-space: nowrap;
 }
-.filter-chip.active { background: var(--label); color: white; }
+.filter-chip.active {
+  background: var(--orange);
+  color: white;
+  border-color: var(--orange);
+  box-shadow: 0 2px 8px rgba(255,107,46,0.30);
+}
 .catalogue-scroll {
   flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
   padding: 16px 16px calc(var(--nav-h) + var(--safe-bottom-tight) + 16px);
@@ -403,8 +529,8 @@ body {
 .catalogue-scroll::-webkit-scrollbar { display: none; }
 .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .cat-card {
-  background: var(--white); border-radius: var(--radius); overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  background: var(--paper-2); border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--shadow);
   cursor: pointer; transition: transform 0.12s;
 }
 .cat-card:active { transform: scale(0.96); }
@@ -428,10 +554,15 @@ body {
   padding: calc(var(--safe-top) + 12px) 20px 0;
   border-bottom: 1px solid var(--sep);
   flex-shrink: 0;
+  position: relative;
 }
 .planning-title {
-  font-size: 26px; font-weight: 900; letter-spacing: -0.4px;
+  font-family: var(--f-display);
+  font-size: 30px; font-weight: 800;
+  font-variation-settings: "opsz" 144, "SOFT" 50;
+  letter-spacing: -0.6px;
   margin-bottom: 12px;
+  color: var(--ink);
 }
 .planning-header-row {
   display: flex; align-items: center; justify-content: space-between;
@@ -466,7 +597,7 @@ body {
   transition: color 0.15s, border-color 0.15s;
 }
 .planning-tab.active {
-  color: var(--label);
+  color: var(--ink);
   border-bottom-color: var(--orange);
 }
 .planning-scroll {
@@ -488,17 +619,19 @@ body {
 }
 .planning-week-picker-arrow {
   width: 36px; height: 36px; border-radius: 50%;
-  background: #F0F0F0; border: none; cursor: pointer;
+  background: var(--paper-3); border: 1px solid var(--sep); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  font-size: 16px; font-weight: 800; color: var(--label2);
+  font-size: 16px; font-weight: 800; color: var(--ink-2);
   font-family: var(--f);
   transition: transform 0.12s, background 0.15s;
 }
-.planning-week-picker-arrow:active { transform: scale(0.9); background: #E5E5E0; }
+.planning-week-picker-arrow:active { transform: scale(0.9); background: var(--paper); }
 .planning-week-picker-current {
   flex: 1; text-align: center;
-  font-size: 16px; font-weight: 900; color: var(--label);
-  letter-spacing: -0.2px;
+  font-family: var(--f-display);
+  font-size: 18px; font-weight: 700; color: var(--ink);
+  font-variation-settings: "opsz" 144, "SOFT" 40;
+  letter-spacing: -0.3px;
 }
 .planning-week-picker-share {
   width: 36px; height: 36px; border-radius: 50%;
@@ -519,15 +652,18 @@ body {
 .shopping-list { padding: 0 0 20px; }
 .shopping-empty {
   margin: 30px 16px;
-  background: white; border-radius: var(--radius);
+  background: var(--paper-2); border-radius: var(--radius);
   padding: 32px 20px; text-align: center;
   color: var(--label3); font-size: 14px; font-weight: 600;
-  border: 1px dashed rgba(0,0,0,0.1);
+  font-family: var(--f-display); font-style: italic;
+  font-variation-settings: "SOFT" 80;
+  border: 1.5px dashed rgba(31, 61, 51, 0.14);
 }
 .shopping-view-toggle {
   display: flex;
-  background: #ECECE8;
-  border-radius: 10px;
+  background: var(--paper-3);
+  border: 1px solid var(--sep);
+  border-radius: 12px;
   padding: 3px;
   margin: 12px 16px 0;
 }
@@ -542,18 +678,18 @@ body {
   transition: all 0.18s;
 }
 .shopping-toggle-btn.active {
-  background: white;
-  color: var(--label);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: 0 1px 4px rgba(78, 52, 30, 0.12), inset 0 0 0 1px rgba(31, 61, 51, 0.06);
 }
 .shopping-item-name {
   display: block;
-  font-size: 14px; font-weight: 600; color: var(--label);
+  font-size: 14px; font-weight: 600; color: var(--ink);
   line-height: 1.3;
 }
 .shopping-item-qty {
   display: block;
-  font-size: 12px; color: var(--orange); font-weight: 800;
+  font-size: 12px; color: var(--orange-deep); font-weight: 800;
   margin-top: 2px; letter-spacing: 0.01em;
 }
 .shopping-item.checked .shopping-item-name { color: var(--label3); }
@@ -561,17 +697,17 @@ body {
 .shopping-count-pill {
   font-size: 10px; font-weight: 800;
   padding: 3px 7px; border-radius: 8px;
-  background: #F0F0F0; color: var(--label3);
+  background: var(--orange-soft); color: var(--orange-deep);
 }
 .shopping-recipes {
   display: flex; flex-wrap: wrap; gap: 4px;
   margin-top: 6px;
 }
 .shopping-recipe-link {
-  background: #ECECE8;
+  background: var(--sapin-soft);
   border: none; cursor: pointer;
   font-family: var(--f); font-size: 10.5px; font-weight: 700;
-  color: var(--label2);
+  color: var(--sapin);
   padding: 4px 8px; border-radius: 6px;
   white-space: nowrap;
   max-width: 220px; overflow: hidden; text-overflow: ellipsis;
@@ -580,7 +716,7 @@ body {
 }
 .shopping-recipe-link:active {
   transform: scale(0.95);
-  background: #DDDDD8;
+  background: rgba(31, 93, 79, 0.18);
 }
 .shopping-item.checked .shopping-recipe-link {
   opacity: 0.55;
@@ -610,8 +746,8 @@ body {
   padding: 6px 4px;
 }
 .shopping-items {
-  background: white; border-radius: var(--radius);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  background: var(--paper-2); border-radius: var(--radius);
+  box-shadow: var(--shadow);
   overflow: hidden;
 }
 .shopping-item {
@@ -623,17 +759,17 @@ body {
   transition: background 0.12s;
 }
 .shopping-item:last-child { border-bottom: none; }
-.shopping-item:active { background: #FAFAF6; }
+.shopping-item:active { background: var(--paper-3); }
 .shopping-check {
   width: 22px; height: 22px; border-radius: 50%;
-  border: 2px solid rgba(0,0,0,0.18);
+  border: 2px solid rgba(31, 61, 51, 0.22);
   flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   font-size: 12px; color: transparent;
   transition: all 0.18s;
 }
 .shopping-item.checked .shopping-check {
-  background: #34C759; border-color: #34C759; color: white;
+  background: var(--sapin); border-color: var(--sapin); color: white;
 }
 .shopping-text {
   flex: 1; font-size: 14px; font-weight: 600; color: var(--label);
@@ -648,7 +784,7 @@ body {
 }
 .shopping-recipe-tag {
   font-size: 10px; font-weight: 700; color: var(--label3);
-  padding: 2px 6px; border-radius: 5px; background: #F0F0F0;
+  padding: 2px 6px; border-radius: 5px; background: var(--paper-3);
   white-space: nowrap;
 }
 
@@ -660,14 +796,14 @@ body {
   gap: 8px;
 }
 .year-cell {
-  background: white;
-  border-radius: 12px;
+  background: var(--paper-2);
+  border-radius: 14px;
   overflow: hidden;
   cursor: pointer;
   aspect-ratio: 0.8;
   position: relative;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  transition: transform 0.12s;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.12s, box-shadow 0.12s;
 }
 .year-cell:active { transform: scale(0.96); }
 .year-cell-img-wrap {
@@ -696,13 +832,15 @@ body {
 .year-cell-count {
   font-size: 9px; font-weight: 700; color: var(--label3);
 }
-.year-cell.current { box-shadow: 0 0 0 2px var(--orange), 0 1px 4px rgba(0,0,0,0.06); }
+.year-cell.current { box-shadow: 0 0 0 2px var(--orange), var(--shadow-sm); }
 .year-cell.current .year-cell-num { color: var(--orange); }
 .year-season-head {
-  font-size: 12px; font-weight: 800; text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 18px 22px 8px;
-  display: flex; align-items: center; gap: 6px;
+  font-family: var(--f-display);
+  font-size: 17px; font-weight: 700;
+  font-variation-settings: "opsz" 144, "SOFT" 50;
+  letter-spacing: -0.2px;
+  padding: 20px 22px 10px;
+  display: flex; align-items: center; gap: 8px;
 }
 .year-season-badge {
   font-size: 10px; padding: 2px 8px; border-radius: 10px;
@@ -721,22 +859,27 @@ body {
 }
 .sugg-action-btn {
   flex: 1;
-  background: var(--label); color: white;
+  background: var(--orange); color: white;
   border: none; cursor: pointer;
   border-radius: var(--radius-sm);
-  padding: 11px 14px;
+  padding: 12px 14px;
   font-family: var(--f); font-size: 13px; font-weight: 800;
   display: flex; align-items: center; justify-content: center; gap: 6px;
-  transition: transform 0.12s;
+  transition: transform 0.12s, box-shadow 0.12s;
+  box-shadow: 0 2px 10px rgba(255,107,46,0.30);
 }
-.sugg-action-btn:active { transform: scale(0.97); }
-.sugg-action-btn.secondary { background: white; color: var(--label); border: 1px solid var(--sep); }
+.sugg-action-btn:active { transform: scale(0.97); box-shadow: 0 1px 4px rgba(255,107,46,0.25); }
+.sugg-action-btn.secondary {
+  background: var(--paper-2); color: var(--ink);
+  border: 1px solid var(--sep);
+  box-shadow: var(--shadow-sm);
+}
 .sugg-list { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
 .sugg-card {
-  background: white;
+  background: var(--paper-2);
   border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow);
   display: flex;
 }
 .sugg-card-img {
@@ -772,7 +915,7 @@ body {
   transition: transform 0.12s;
 }
 .sugg-card-btn:active { transform: scale(0.95); }
-.sugg-card-btn.secondary { background: #F0F0F0; color: var(--label2); }
+.sugg-card-btn.secondary { background: var(--paper-3); color: var(--ink-2); border: 1px solid var(--sep); }
 
 /* ── Stats ── */
 .stats-overview {
@@ -780,12 +923,16 @@ body {
   padding: 14px 16px 4px;
 }
 .stats-card {
-  background: white; border-radius: 14px; padding: 14px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  background: var(--paper-2); border-radius: var(--radius-sm); padding: 14px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--sep);
 }
 .stats-card-value {
-  font-size: 26px; font-weight: 900; letter-spacing: -0.5px;
-  color: var(--label); line-height: 1.1;
+  font-family: var(--f-display);
+  font-size: 30px; font-weight: 800;
+  font-variation-settings: "opsz" 144, "SOFT" 40;
+  letter-spacing: -0.6px;
+  color: var(--ink); line-height: 1.05;
 }
 .stats-card-label {
   font-size: 11px; font-weight: 800; color: var(--label3);
@@ -804,10 +951,10 @@ body {
 .stats-top-list { padding: 0 16px; display: flex; flex-direction: column; gap: 6px; }
 .stats-top-row {
   display: flex; align-items: center; gap: 10px;
-  background: white; padding: 8px 12px;
+  background: var(--paper-2); padding: 8px 12px;
   border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
   transition: transform 0.12s;
 }
 .stats-top-row:active { transform: scale(0.98); }
@@ -827,8 +974,8 @@ body {
   overflow: hidden;
 }
 .stats-top-count {
-  font-size: 11px; font-weight: 800; color: var(--orange);
-  background: rgba(255,107,46,0.12);
+  font-size: 11px; font-weight: 800; color: var(--orange-deep);
+  background: var(--orange-soft);
   padding: 4px 9px; border-radius: 8px;
   flex-shrink: 0; white-space: nowrap;
 }
@@ -839,9 +986,9 @@ body {
 .stats-mini-cards::-webkit-scrollbar { display: none; }
 .stats-mini-card {
   flex-shrink: 0; width: 120px;
-  background: white; border-radius: 12px; overflow: hidden;
+  background: var(--paper-2); border-radius: 12px; overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow-sm);
   transition: transform 0.12s;
   text-align: left;
   border: none;
@@ -866,10 +1013,16 @@ body {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .stats-bar-track {
-  flex: 1; height: 14px; background: #F0F0F0; border-radius: 7px; overflow: hidden;
+  flex: 1; height: 14px; background: var(--paper-3);
+  border: 1px solid var(--sep);
+  border-radius: 7px; overflow: hidden;
 }
 .stats-bar-fill {
-  height: 100%; background: var(--orange); border-radius: 7px;
+  height: 100%;
+  /* Dégradé orange→corail subtil pour donner du relief, plutôt qu'un
+     remplissage plat. Reste 100% dans la palette du logo. */
+  background: linear-gradient(90deg, var(--orange) 0%, var(--corail) 100%);
+  border-radius: 7px;
   transition: width 0.3s ease;
 }
 .stats-bar-value {
@@ -879,10 +1032,11 @@ body {
 .stats-empty {
   margin: 12px 16px;
   padding: 18px;
-  background: white; border-radius: var(--radius);
+  background: var(--paper-2); border-radius: var(--radius);
   text-align: center; color: var(--label3);
   font-size: 13px; font-weight: 600;
-  border: 1px dashed rgba(0,0,0,0.1);
+  font-family: var(--f-display); font-style: italic;
+  border: 1.5px dashed rgba(31, 61, 51, 0.14);
 }
 
 /* ══════════════════════════
@@ -892,19 +1046,20 @@ body {
   display: none; position: fixed; inset: 0; z-index: 100;
   background: rgba(0,0,0,0); transition: background 0.28s;
 }
-.overlay.open { display: block; background: rgba(0,0,0,0.45); }
+.overlay.open { display: block; background: rgba(31, 61, 51, 0.55); }
 
 .sheet {
   position: fixed; bottom: 0; left: 50%;
   transform: translateX(-50%) translateY(102%);
   width: 100%; max-width: 430px;
-  background: var(--white);
+  background: var(--paper-2);
   border-radius: 28px 28px 0 0;
   max-height: 92dvh; overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   z-index: 101;
   transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
   will-change: transform;
+  box-shadow: 0 -8px 32px rgba(31, 61, 51, 0.20);
 }
 .sheet.open { transform: translateX(-50%) translateY(0); }
 .sheet::-webkit-scrollbar { display: none; }
@@ -1019,22 +1174,29 @@ body {
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
 .sheet-photo-title {
-  font-size: 24px; font-weight: 900; color: white;
-  letter-spacing: -0.4px; line-height: 1.15;
-  text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  font-family: var(--f-display);
+  font-size: 28px; font-weight: 800; color: white;
+  font-variation-settings: "opsz" 144, "SOFT" 50;
+  letter-spacing: -0.6px; line-height: 1.08;
+  text-shadow: 0 2px 18px rgba(31, 61, 51, 0.45);
 }
-.sheet-section { padding: 16px 20px; border-top: 1px solid var(--sep); }
+.sheet-section { padding: 18px 20px; border-top: 1px solid var(--sep); }
 .sheet-section-label {
-  font-size: 11px; font-weight: 800; text-transform: uppercase;
-  letter-spacing: 0.08em; color: var(--label3); margin-bottom: 10px;
+  font-family: var(--f-display);
+  font-style: italic;
+  font-size: 13px; font-weight: 600;
+  font-variation-settings: "SOFT" 80;
+  letter-spacing: 0.01em; color: var(--ink-2);
+  margin-bottom: 10px;
+  text-transform: none;
 }
-.sheet-section-text { font-size: 14px; line-height: 1.7; color: var(--label2); font-weight: 500; white-space: pre-line; }
+.sheet-section-text { font-size: 14px; line-height: 1.7; color: var(--ink-2); font-weight: 500; white-space: pre-line; }
 .sheet-semaines { font-size: 13px; color: var(--label3); font-weight: 600; line-height: 1.6; }
 .sheet-pb { height: calc(var(--safe-bottom) + 24px); }
 
 /* LOADER */
 .loader-wrap { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 60px 20px; flex-direction: column; }
-.loader { width: 24px; height: 24px; border: 2.5px solid #E0E0E0; border-top-color: var(--orange); border-radius: 50%; animation: spin 0.7s linear infinite; }
+.loader { width: 24px; height: 24px; border: 2.5px solid rgba(31, 61, 51, 0.12); border-top-color: var(--orange); border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loader-text { font-size: 13px; color: var(--label3); font-weight: 600; }
 @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
@@ -1050,39 +1212,46 @@ body {
   flex: 1; min-width: 0;
   padding: 12px 12px;
   border-radius: var(--radius-sm);
-  border: 1px dashed rgba(0,0,0,0.18);
-  background: #FAFAF6;
+  border: 1px dashed rgba(31, 61, 51, 0.22);
+  background: var(--paper-3);
   font-family: var(--f); font-size: 13px; font-weight: 800;
-  color: var(--label2);
+  color: var(--ink-2);
   cursor: pointer;
   transition: background 0.15s, transform 0.12s;
   display: flex; align-items: center; justify-content: center; gap: 6px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.sheet-action-btn:active { transform: scale(0.98); background: #F0F0E8; }
+.sheet-action-btn:active { transform: scale(0.98); background: var(--paper); }
 .sheet-action-btn.primary {
-  background: var(--label);
+  background: var(--orange);
   color: white;
-  border: 1px solid var(--label);
+  border: 1px solid var(--orange);
+  box-shadow: 0 2px 10px rgba(255,107,46,0.30);
 }
-.sheet-action-btn.primary:active { background: #333; }
+.sheet-action-btn.primary:active { background: var(--orange-deep); box-shadow: 0 1px 4px rgba(255,107,46,0.25); }
 .photo-edit-btn.busy { opacity: 0.6; cursor: progress; }
-.photo-edit-btn.ok { background: rgba(16,185,129,0.12); color: #059669; border-color: rgba(16,185,129,0.3); }
-.photo-edit-btn.err { background: rgba(239,68,68,0.12); color: #DC2626; border-color: rgba(239,68,68,0.3); }
+.photo-edit-btn.ok { background: var(--sapin-soft); color: var(--sapin); border-color: rgba(31, 93, 79, 0.3); }
+.photo-edit-btn.err { background: var(--corail-soft); color: var(--corail); border-color: rgba(226, 91, 74, 0.3); }
 
 /* ══════════════════════════
    FORMULAIRE recette
 ══════════════════════════ */
 .form-header {
   position: sticky; top: 0;
-  background: white;
+  background: var(--white);
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 16px;
   border-bottom: 1px solid var(--sep);
   z-index: 5;
   gap: 10px;
 }
-.form-header-title { font-size: 16px; font-weight: 900; letter-spacing: -0.2px; flex: 1; text-align: center; }
+.form-header-title {
+  font-family: var(--f-display);
+  font-size: 18px; font-weight: 700;
+  font-variation-settings: "opsz" 144, "SOFT" 40;
+  letter-spacing: -0.2px; flex: 1; text-align: center;
+  color: var(--ink);
+}
 .form-cancel, .form-save {
   background: none; border: none;
   font-family: var(--f); font-size: 14px; font-weight: 800;
@@ -1118,7 +1287,7 @@ body {
   font-size: 15px; font-weight: 600;
   border: 1px solid var(--sep);
   border-radius: var(--radius-sm);
-  background: #FAFAF6;
+  background: var(--paper-3);
   padding: 11px 12px;
   outline: none;
   color: var(--label);
@@ -1126,7 +1295,7 @@ body {
 }
 .form-input:focus, .form-textarea:focus {
   border-color: var(--orange);
-  background: white;
+  background: var(--white);
 }
 .form-textarea {
   resize: vertical;
@@ -1138,21 +1307,22 @@ body {
   display: flex; flex-wrap: wrap; gap: 6px;
 }
 .form-chip {
-  background: #F0F0F0;
-  border: 1.5px solid transparent;
+  background: var(--paper-3);
+  border: 1.5px solid var(--sep);
   border-radius: 14px;
   padding: 7px 12px;
   font-family: var(--f); font-size: 12px; font-weight: 700;
-  color: var(--label2);
+  color: var(--ink-2);
   cursor: pointer;
   transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 .form-chip:active { transform: scale(0.94); }
 .form-chip.selected {
-  background: var(--label);
+  background: var(--orange);
   color: white;
-  border-color: var(--label);
+  border-color: var(--orange);
+  box-shadow: 0 2px 8px rgba(255,107,46,0.30);
 }
 /* Gestion des photos dans le formulaire */
 .form-photos {
@@ -1193,8 +1363,9 @@ body {
   font-size: 13px;
 }
 .form-photo-star.active {
-  background: #F59E0B;
-  border-color: #F59E0B;
+  background: var(--moutarde);
+  border-color: var(--moutarde);
+  box-shadow: 0 2px 8px rgba(245, 166, 35, 0.45);
 }
 .form-photo-del:active, .form-photo-star:active { transform: scale(0.85); }
 .form-photo-cover {
@@ -1209,15 +1380,15 @@ body {
 .form-photo-add {
   aspect-ratio: 1;
   border-radius: 12px;
-  border: 2px dashed rgba(0,0,0,0.18);
-  background: #FAFAF6;
-  font-size: 26px; color: var(--label3); font-weight: 300;
+  border: 2px dashed rgba(31, 61, 51, 0.22);
+  background: var(--paper-3);
+  font-size: 26px; color: var(--ink-3); font-weight: 300;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   font-family: var(--f);
   transition: background 0.15s, transform 0.12s;
 }
-.form-photo-add:active { transform: scale(0.95); background: #F0F0E8; }
+.form-photo-add:active { transform: scale(0.95); background: var(--paper); }
 .form-photo-add.busy { opacity: 0.6; cursor: progress; }
 
 /* Drag & drop des photos */
@@ -1254,8 +1425,8 @@ body {
 .form-delete-btn {
   width: 100%;
   background: none;
-  border: 1.5px solid rgba(239,68,68,0.3);
-  color: #DC2626;
+  border: 1.5px solid rgba(226, 91, 74, 0.32);
+  color: var(--corail);
   font-family: var(--f); font-size: 13px; font-weight: 800;
   padding: 13px 14px;
   border-radius: var(--radius-sm);
@@ -1265,8 +1436,8 @@ body {
 }
 .form-delete-btn:active {
   transform: scale(0.98);
-  background: rgba(239,68,68,0.08);
-  border-color: rgba(239,68,68,0.5);
+  background: var(--corail-soft);
+  border-color: rgba(226, 91, 74, 0.55);
 }
 .form-delete-btn.busy { opacity: 0.6; cursor: progress; }
 
@@ -1276,8 +1447,8 @@ body {
   gap: 6px;
 }
 .form-chip-week {
-  background: #F4F4EE;
-  border: 1.5px solid transparent;
+  background: var(--paper-3);
+  border: 1.5px solid var(--sep);
   border-radius: 12px;
   padding: 8px 4px;
   font-family: var(--f);
@@ -1292,6 +1463,7 @@ body {
 .form-chip-week.selected {
   background: var(--orange);
   border-color: var(--orange);
+  box-shadow: 0 2px 8px rgba(255,107,46,0.30);
 }
 .form-chip-week.selected .form-chip-week-num { color: white; }
 
@@ -1442,11 +1614,14 @@ function saison(w){
   if(w>=40 && w<=52) return 'Automne';
   return 'Hiver';
 }
+// Couleurs saisons = les 4 bandeaux quadrichromiques du logo.
+// Hiver→sapin (cocotte), Printemps→moutarde, Été→orange (icône), Automne→corail.
+// Donne à l'app une signature visuelle cohérente avec le launcher PWA.
 const SM={
-  Hiver:{emoji:'❄️',color:'#0071E3',bg:'rgba(0,113,227,0.15)'},
-  Printemps:{emoji:'🌸',color:'#1a9962',bg:'rgba(26,153,98,0.15)'},
-  Été:{emoji:'☀️',color:'#c47c00',bg:'rgba(196,124,0,0.15)'},
-  Automne:{emoji:'🍂',color:'#d0521a',bg:'rgba(208,82,26,0.15)'},
+  Hiver:    {emoji:'❄️', color:'#1F5D4F', bg:'rgba(31, 93, 79, 0.14)'},
+  Printemps:{emoji:'🌸', color:'#C97F0C', bg:'rgba(245, 166, 35, 0.18)'},
+  Été:      {emoji:'☀️', color:'#E8531A', bg:'rgba(255, 107, 46, 0.16)'},
+  Automne:  {emoji:'🍂', color:'#C13E2D', bg:'rgba(226, 91, 74, 0.16)'},
 };
 
 // Retourne l'URL de photo "principale" pour une recette.
