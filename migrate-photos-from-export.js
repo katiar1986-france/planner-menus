@@ -97,7 +97,7 @@ function contentTypeFromExt(ext) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function fetchAllRecettes(key) {
-  const res = await fetch(`${SB}/rest/v1/recettes?select=id,titre,photo_url&limit=1000`, {
+  const res = await fetch(`${SB}/rest/v1/recettes?select=id,titre,photo_url,photos&limit=1000`, {
     headers: { apikey: key, Authorization: `Bearer ${key}` },
   });
   if (!res.ok) throw new Error(`Supabase fetch ${res.status}: ${await res.text().catch(() => '')}`);
@@ -120,7 +120,9 @@ async function uploadToStorage(key, storagePath, buffer, contentType) {
   return `${SB}/storage/v1/object/public/${BUCKET}/${storagePath}`;
 }
 
-async function updateRecettePhotoUrl(key, id, photoUrl) {
+async function updateRecettePhotos(key, id, photos) {
+  // photos = array d'URLs. photo_url = photos[0] pour rétro-compat.
+  const payload = { photos, photo_url: photos[0] || null };
   const res = await fetch(`${SB}/rest/v1/recettes?id=eq.${id}`, {
     method: 'PATCH',
     headers: {
@@ -129,7 +131,7 @@ async function updateRecettePhotoUrl(key, id, photoUrl) {
       'Content-Type': 'application/json',
       Prefer: 'return=minimal',
     },
-    body: JSON.stringify({ photo_url: photoUrl }),
+    body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error(`Update ${res.status}: ${await res.text().catch(() => '')}`);
 }
@@ -233,7 +235,8 @@ async function main() {
     if (k) recettesByTitle.set(k, r);
   }
 
-  let ok = 0, skipNoPhoto = 0, skipNoMatch = 0, skipHasPhoto = 0, skipMissingFile = 0, fail = 0;
+  let totalUploaded = 0, recettesUpdated = 0;
+  let skipNoPhoto = 0, skipNoMatch = 0, skipAlreadyDone = 0, skipMissingFile = 0, fail = 0;
   const unmatched = [];
 
   for (let i = 1; i < rows.length; i++) {
@@ -249,52 +252,73 @@ async function main() {
       skipNoMatch++;
       continue;
     }
-    if (!overwrite && recette.photo_url) {
-      skipHasPhoto++;
-      continue;
-    }
 
-    // Première image (les chemins sont séparés par ", " et URL-encodés)
-    const firstPathEncoded = filesField.split(/,\s*(?=Recettes\/)/)[0].trim();
-    let firstPath;
-    try { firstPath = decodeURIComponent(firstPathEncoded); }
-    catch { firstPath = firstPathEncoded; }
+    // Parser tous les chemins (séparés par ", Recettes/")
+    const pathsEncoded = filesField.split(/,\s*(?=Recettes\/)/).map(p => p.trim()).filter(Boolean);
+    if (!pathsEncoded.length) { skipNoPhoto++; continue; }
 
-    const absPath = path.join(csvDir, firstPath);
-    if (!fs.existsSync(absPath)) {
-      console.log(`  ⚠️   ${title} — fichier introuvable : ${firstPath}`);
-      skipMissingFile++;
-      continue;
+    const currentPhotos = Array.isArray(recette.photos) ? recette.photos.filter(p => p) : [];
+
+    // En mode overwrite : on upload tout depuis 0. Sinon, on upload seulement
+    // les photos manquantes au-delà de ce qui est déjà en base.
+    const startIdx = overwrite ? 0 : currentPhotos.length;
+    const pathsToUpload = pathsEncoded.slice(startIdx);
+    if (!pathsToUpload.length) { skipAlreadyDone++; continue; }
+
+    const newUrls = [];
+    let recipeFailed = false;
+    for (const enc of pathsToUpload) {
+      let p;
+      try { p = decodeURIComponent(enc); } catch { p = enc; }
+      const absPath = path.join(csvDir, p);
+      if (!fs.existsSync(absPath)) {
+        console.log(`  ⚠️   ${title} — fichier introuvable : ${p}`);
+        recipeFailed = true;
+        break;
+      }
+      let ext = path.extname(absPath).slice(1).toLowerCase();
+      if (ext === 'jpeg') ext = 'jpg';
+      if (!['jpg', 'png', 'webp', 'gif', 'avif', 'heic', 'heif'].includes(ext)) {
+        console.log(`  ⏭️   ${title} — ext non gérée : ${ext}`);
+        recipeFailed = true;
+        break;
+      }
+      try {
+        const buf = fs.readFileSync(absPath);
+        const uniq = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+        const storagePath = `${recette.id}/${uniq}.${ext}`;
+        const url = await uploadToStorage(sbKey, storagePath, buf, contentTypeFromExt(ext));
+        newUrls.push(url);
+      } catch (e) {
+        console.log(`  ❌  ${title} — upload : ${e.message}`);
+        recipeFailed = true;
+        break;
+      }
     }
-    let ext = path.extname(absPath).slice(1).toLowerCase();
-    if (ext === 'jpeg') ext = 'jpg';
-    if (!['jpg', 'png', 'webp', 'gif', 'avif', 'heic', 'heif'].includes(ext)) {
-      console.log(`  ⏭️   ${title} — extension non gérée : ${ext}`);
-      skipMissingFile++;
-      continue;
-    }
+    if (recipeFailed) { fail++; continue; }
+    if (!newUrls.length) { skipMissingFile++; continue; }
+
+    const finalPhotos = overwrite ? newUrls : [...currentPhotos, ...newUrls];
 
     try {
-      const buf = fs.readFileSync(absPath);
-      const storagePath = `${recette.id}.${ext}`;
-      const baseUrl = await uploadToStorage(sbKey, storagePath, buf, contentTypeFromExt(ext));
-      const publicUrl = `${baseUrl}?v=${Date.now()}`;
-      await updateRecettePhotoUrl(sbKey, recette.id, publicUrl);
-      ok++;
-      console.log(`  ✅  ${title}`);
+      await updateRecettePhotos(sbKey, recette.id, finalPhotos);
+      recettesUpdated++;
+      totalUploaded += newUrls.length;
+      console.log(`  ✅  ${title} (+${newUrls.length}, total ${finalPhotos.length})`);
     } catch (e) {
       fail++;
-      console.log(`  ❌  ${title} — ${e.message}`);
+      console.log(`  ❌  ${title} — patch : ${e.message}`);
     }
   }
 
   console.log('\n──────────────────────────────────────────');
-  console.log(`✅  Migrées          : ${ok}`);
-  console.log(`⏭️   Déjà une photo  : ${skipHasPhoto}`);
-  console.log(`⏭️   Pas de photo CSV : ${skipNoPhoto}`);
-  console.log(`⏭️   Pas de match     : ${skipNoMatch}`);
-  console.log(`⚠️   Fichier manquant : ${skipMissingFile}`);
-  console.log(`❌  Échecs           : ${fail}`);
+  console.log(`✅  Recettes mises à jour : ${recettesUpdated}`);
+  console.log(`✅  Photos uploadées      : ${totalUploaded}`);
+  console.log(`⏭️   Déjà à jour          : ${skipAlreadyDone}`);
+  console.log(`⏭️   Pas de photo CSV     : ${skipNoPhoto}`);
+  console.log(`⏭️   Pas de match         : ${skipNoMatch}`);
+  console.log(`⚠️   Fichier manquant     : ${skipMissingFile}`);
+  console.log(`❌  Échecs                : ${fail}`);
   if (unmatched.length) {
     console.log('\nTitres Notion sans correspondance Supabase :');
     unmatched.slice(0, 30).forEach((t) => console.log(`  • ${t}`));
