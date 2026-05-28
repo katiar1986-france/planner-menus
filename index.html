@@ -412,6 +412,268 @@ body {
 .cat-sub { font-size: 11px; color: var(--label3); font-weight: 600; }
 
 /* ══════════════════════════
+   SCREEN PLANNING
+══════════════════════════ */
+.planning-header {
+  background: var(--white);
+  padding: calc(var(--safe-top) + 12px) 20px 0;
+  border-bottom: 1px solid var(--sep);
+  flex-shrink: 0;
+}
+.planning-title {
+  font-size: 26px; font-weight: 900; letter-spacing: -0.4px;
+  margin-bottom: 12px;
+}
+.planning-tabs {
+  display: flex; gap: 4px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.planning-tabs::-webkit-scrollbar { display: none; }
+.planning-tab {
+  flex-shrink: 0;
+  background: none; border: none; cursor: pointer;
+  font-family: var(--f); font-size: 13px; font-weight: 800;
+  color: var(--label3);
+  padding: 10px 14px;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.planning-tab.active {
+  color: var(--label);
+  border-bottom-color: var(--orange);
+}
+.planning-scroll {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--nav-h) + var(--safe-bottom-tight) + 16px);
+}
+.planning-scroll::-webkit-scrollbar { display: none; }
+
+/* Sélecteur de semaine (utilisé par Courses + Suggestions) */
+.planning-week-picker {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px;
+  background: white;
+  border-bottom: 1px solid var(--sep);
+}
+.planning-week-picker-label {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--label3);
+}
+.planning-week-picker-arrow {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #F0F0F0; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 800; color: var(--label2);
+  font-family: var(--f);
+  transition: transform 0.12s, background 0.15s;
+}
+.planning-week-picker-arrow:active { transform: scale(0.9); background: #E5E5E0; }
+.planning-week-picker-current {
+  flex: 1; text-align: center;
+  font-size: 16px; font-weight: 900; color: var(--label);
+  letter-spacing: -0.2px;
+}
+
+/* ── Liste de courses ── */
+.shopping-list { padding: 0 0 20px; }
+.shopping-empty {
+  margin: 30px 16px;
+  background: white; border-radius: var(--radius);
+  padding: 32px 20px; text-align: center;
+  color: var(--label3); font-size: 14px; font-weight: 600;
+  border: 1px dashed rgba(0,0,0,0.1);
+}
+.shopping-meta {
+  padding: 14px 20px 6px;
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.shopping-meta-stat {
+  font-size: 12px; font-weight: 800; color: var(--label3);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.shopping-meta-actions {
+  display: flex; gap: 8px;
+}
+.shopping-meta-btn {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--f); font-size: 12px; font-weight: 800;
+  color: var(--orange);
+  padding: 4px 8px;
+}
+.shopping-groups { padding: 4px 16px; }
+.shopping-group { margin-top: 14px; }
+.shopping-group-head {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--label3);
+  padding: 6px 4px;
+}
+.shopping-items {
+  background: white; border-radius: var(--radius);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+.shopping-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--sep);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s;
+}
+.shopping-item:last-child { border-bottom: none; }
+.shopping-item:active { background: #FAFAF6; }
+.shopping-check {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.18);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: transparent;
+  transition: all 0.18s;
+}
+.shopping-item.checked .shopping-check {
+  background: #34C759; border-color: #34C759; color: white;
+}
+.shopping-text {
+  flex: 1; font-size: 14px; font-weight: 600; color: var(--label);
+  line-height: 1.4;
+  transition: color 0.18s, opacity 0.18s;
+}
+.shopping-item.checked .shopping-text {
+  text-decoration: line-through;
+  text-decoration-color: rgba(0,0,0,0.3);
+  color: var(--label3);
+  opacity: 0.7;
+}
+.shopping-recipe-tag {
+  font-size: 10px; font-weight: 700; color: var(--label3);
+  padding: 2px 6px; border-radius: 5px; background: #F0F0F0;
+  white-space: nowrap;
+}
+
+/* ── Calendrier annuel ── */
+.year-grid {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.year-cell {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  aspect-ratio: 0.8;
+  position: relative;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: transform 0.12s;
+}
+.year-cell:active { transform: scale(0.96); }
+.year-cell-img-wrap {
+  height: 60%;
+  position: relative;
+  overflow: hidden;
+}
+.year-cell-img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.year-cell-empty {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+.year-cell-body {
+  padding: 6px 4px; text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 1px;
+}
+.year-cell-emoji { font-size: 14px; line-height: 1; }
+.year-cell-num {
+  font-size: 10px; font-weight: 800; color: var(--label2);
+  letter-spacing: 0.02em;
+}
+.year-cell-count {
+  font-size: 9px; font-weight: 700; color: var(--label3);
+}
+.year-cell.current { box-shadow: 0 0 0 2px var(--orange), 0 1px 4px rgba(0,0,0,0.06); }
+.year-cell.current .year-cell-num { color: var(--orange); }
+.year-season-head {
+  font-size: 12px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 18px 22px 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.year-season-badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 10px;
+  font-weight: 800; letter-spacing: 0.05em;
+}
+
+/* ── Suggestions ── */
+.sugg-intro {
+  padding: 14px 20px;
+  font-size: 13px; color: var(--label2); font-weight: 500;
+  line-height: 1.5;
+}
+.sugg-actions {
+  padding: 0 16px 12px;
+  display: flex; gap: 8px;
+}
+.sugg-action-btn {
+  flex: 1;
+  background: var(--label); color: white;
+  border: none; cursor: pointer;
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  font-family: var(--f); font-size: 13px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: transform 0.12s;
+}
+.sugg-action-btn:active { transform: scale(0.97); }
+.sugg-action-btn.secondary { background: white; color: var(--label); border: 1px solid var(--sep); }
+.sugg-list { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
+.sugg-card {
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  display: flex;
+}
+.sugg-card-img {
+  width: 100px; height: 100px; object-fit: cover; flex-shrink: 0;
+  display: block; background: #eee;
+}
+.sugg-card-img.img-placeholder { background: linear-gradient(135deg, #F5E6D8 0%, #ECD4BC 60%, #E5C8A8 100%); }
+.sugg-card-img.img-placeholder .ph-emoji { font-size: 36px; opacity: 0.8; }
+.sugg-card-body {
+  flex: 1; padding: 10px 12px;
+  display: flex; flex-direction: column;
+  min-width: 0;
+}
+.sugg-card-title {
+  font-size: 14px; font-weight: 800; line-height: 1.25;
+  margin-bottom: 4px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.sugg-card-meta {
+  font-size: 11px; color: var(--label3); font-weight: 600;
+  margin-bottom: auto;
+}
+.sugg-card-actions {
+  display: flex; gap: 6px; margin-top: 8px;
+}
+.sugg-card-btn {
+  flex: 1;
+  background: var(--orange); color: white;
+  border: none; cursor: pointer;
+  border-radius: 8px;
+  padding: 7px 8px;
+  font-family: var(--f); font-size: 11px; font-weight: 800;
+  transition: transform 0.12s;
+}
+.sugg-card-btn:active { transform: scale(0.95); }
+.sugg-card-btn.secondary { background: #F0F0F0; color: var(--label2); }
+
+/* ══════════════════════════
    BOTTOM SHEET
 ══════════════════════════ */
 .overlay {
@@ -813,6 +1075,25 @@ body {
   </div>
 </div>
 
+<!-- SCREEN PLANNING -->
+<div class="screen" id="screen-planning">
+  <div class="planning-header">
+    <div class="planning-title">Planning</div>
+    <div class="planning-tabs">
+      <button class="planning-tab active" data-ptab="courses" onclick="goPlanningTab('courses')">🛒 Courses</button>
+      <button class="planning-tab" data-ptab="annee" onclick="goPlanningTab('annee')">📅 Année</button>
+      <button class="planning-tab" data-ptab="suggest" onclick="goPlanningTab('suggest')">🎲 Suggestions</button>
+    </div>
+  </div>
+  <div class="planning-scroll" id="planning-scroll">
+    <div class="loader-wrap" id="loader-p">
+      <div class="loader"></div>
+      <div class="loader-text">Chargement…</div>
+    </div>
+    <div id="planning-content"></div>
+  </div>
+</div>
+
 <!-- SCREEN CATALOGUE -->
 <div class="screen" id="screen-catalogue">
   <div class="catalogue-header">
@@ -845,6 +1126,10 @@ body {
   <button class="nav-btn active" id="btn-semaines" onclick="goTo('semaines')">
     <span class="nav-icon">📅</span>
     <span class="nav-label">Semaines</span>
+  </button>
+  <button class="nav-btn" id="btn-planning" onclick="goTo('planning')">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">Planning</span>
   </button>
   <div class="nav-fab-wrap">
     <button class="fab" onclick="openAddRecette()">
@@ -1762,7 +2047,362 @@ function goTo(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
-  document.getElementById('btn-'+name).classList.add('active');
+  const btn=document.getElementById('btn-'+name);
+  if(btn) btn.classList.add('active');
+  if(name==='planning') buildPlanning();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// PLANNING — Courses / Année / Suggestions
+// ══════════════════════════════════════════════════════════════════════════
+
+let currentPlanningTab = 'courses';
+let planningWeek = null;
+let suggestionsCache = {}; // { weekNum: [recetteId, ...] } pour stabiliser le shuffle
+
+function goPlanningTab(name){
+  currentPlanningTab = name;
+  document.querySelectorAll('.planning-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.ptab === name);
+  });
+  buildPlanning();
+}
+
+function buildPlanning(){
+  const now = new Date(), cur = isoWeek(now);
+  if (planningWeek == null) planningWeek = cur;
+  const loader = document.getElementById('loader-p');
+  if (loader) loader.style.display = 'none';
+  const content = document.getElementById('planning-content');
+  if (!content) return;
+  if (currentPlanningTab === 'courses') content.innerHTML = renderShoppingList();
+  else if (currentPlanningTab === 'annee') content.innerHTML = renderYearCalendar();
+  else if (currentPlanningTab === 'suggest') content.innerHTML = renderSuggestions();
+  // Scroll en haut au changement d'onglet
+  const sc = document.getElementById('planning-scroll');
+  if (sc) sc.scrollTop = 0;
+}
+
+function weekPickerHTML(weekVar){
+  const w = weekVar;
+  const label = WL[w] || `Semaine ${w}`;
+  return `<div class="planning-week-picker">
+    <button class="planning-week-picker-arrow" onclick="planningWeekShift(-1)" aria-label="Semaine précédente">←</button>
+    <div class="planning-week-picker-current">${label}</div>
+    <button class="planning-week-picker-arrow" onclick="planningWeekShift(1)" aria-label="Semaine suivante">→</button>
+  </div>`;
+}
+
+function planningWeekShift(delta){
+  planningWeek = ww(planningWeek + delta);
+  buildPlanning();
+}
+
+// ── Tab 1 : Liste de courses ──────────────────────────────────────────
+function shoppingStorageKey(week){ return `shopping-${week}`; }
+function loadShoppingChecked(week){
+  try { const raw = localStorage.getItem(shoppingStorageKey(week)); return new Set(raw ? JSON.parse(raw) : []); }
+  catch { return new Set(); }
+}
+function saveShoppingChecked(week, set){
+  try { localStorage.setItem(shoppingStorageKey(week), JSON.stringify([...set])); } catch {}
+}
+
+function parseIngredients(text){
+  if (!text || typeof text !== 'string') return [];
+  // Split par lignes, nettoyer les puces / tirets
+  return text.split(/\r?\n/).map(line => {
+    return line.replace(/^[\s•\-\*]+/, '').trim();
+  }).filter(line => line.length > 0 && line.length < 200);
+}
+
+function renderShoppingList(){
+  const w = planningWeek;
+  // Trouver toutes les recettes de la semaine
+  const items = (all || []).filter(r => Array.isArray(r.semaines) && r.semaines.some(s => WM[s] === w));
+  if (!items.length) {
+    return weekPickerHTML(w) + `<div class="shopping-empty">Aucune recette planifiée pour cette semaine.</div>`;
+  }
+  // Agréger les ingrédients
+  const entries = []; // { line, recetteTitre, recetteId }
+  for (const r of items) {
+    const lines = parseIngredients(r.ingredients);
+    for (const line of lines) {
+      entries.push({ line, recetteTitre: r.titre, recetteId: r.id });
+    }
+  }
+  if (!entries.length) {
+    return weekPickerHTML(w) + `<div class="shopping-empty">Aucun ingrédient renseigné dans les ${items.length} recettes de cette semaine.</div>`;
+  }
+  // Grouper par recette pour conserver le contexte
+  const byRecipe = new Map();
+  for (const e of entries) {
+    if (!byRecipe.has(e.recetteId)) byRecipe.set(e.recetteId, { titre: e.recetteTitre, lines: [] });
+    byRecipe.get(e.recetteId).lines.push(e.line);
+  }
+  const checked = loadShoppingChecked(w);
+  const totalLines = entries.length;
+  const checkedCount = entries.filter(e => checked.has(e.line)).length;
+  let html = weekPickerHTML(w);
+  html += `<div class="shopping-meta">
+    <span class="shopping-meta-stat">${items.length} recettes · ${totalLines} ingrédients · ${checkedCount} ✓</span>
+    <div class="shopping-meta-actions">
+      <button class="shopping-meta-btn" onclick="shoppingToggleAll(true)">Tout cocher</button>
+      <button class="shopping-meta-btn" onclick="shoppingToggleAll(false)">Décocher</button>
+    </div>
+  </div>`;
+  html += `<div class="shopping-groups">`;
+  for (const [recetteId, group] of byRecipe) {
+    html += `<div class="shopping-group">
+      <div class="shopping-group-head">${escHtml(group.titre)}</div>
+      <div class="shopping-items">`;
+    for (const line of group.lines) {
+      const isChecked = checked.has(line);
+      html += `<div class="shopping-item${isChecked?' checked':''}" onclick="shoppingToggle(this, '${escAttr(line).replace(/'/g, "\\'")}')">
+        <div class="shopping-check">✓</div>
+        <div class="shopping-text">${escHtml(line)}</div>
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function shoppingToggle(el, line){
+  const w = planningWeek;
+  const checked = loadShoppingChecked(w);
+  if (checked.has(line)) {
+    checked.delete(line);
+    el.classList.remove('checked');
+  } else {
+    checked.add(line);
+    el.classList.add('checked');
+  }
+  saveShoppingChecked(w, checked);
+  // Mettre à jour le compteur
+  const stat = document.querySelector('.shopping-meta-stat');
+  if (stat) {
+    const items = (all || []).filter(r => Array.isArray(r.semaines) && r.semaines.some(s => WM[s] === w));
+    let total = 0;
+    for (const r of items) total += parseIngredients(r.ingredients).length;
+    stat.textContent = `${items.length} recettes · ${total} ingrédients · ${checked.size} ✓`;
+  }
+}
+
+function shoppingToggleAll(state){
+  const w = planningWeek;
+  const items = (all || []).filter(r => Array.isArray(r.semaines) && r.semaines.some(s => WM[s] === w));
+  const allLines = new Set();
+  for (const r of items) parseIngredients(r.ingredients).forEach(l => allLines.add(l));
+  if (state) saveShoppingChecked(w, allLines);
+  else saveShoppingChecked(w, new Set());
+  buildPlanning();
+}
+
+// ── Tab 2 : Calendrier annuel ─────────────────────────────────────────
+function renderYearCalendar(){
+  const now = new Date(), cur = isoWeek(now);
+  // Index des recettes par semaine
+  const bw = {};
+  (all || []).forEach(r => (r.semaines || []).forEach(sw => {
+    const n = WM[sw];
+    if (n != null) { if (!bw[n]) bw[n] = []; bw[n].push(r); }
+  }));
+  const seasons = [
+    { name: 'Hiver',     weeks: [...Array(12).keys()].map(i => i + 1) },           // 1-12
+    { name: 'Printemps', weeks: [...Array(9).keys()].map(i => i + 13) },           // 13-21
+    { name: 'Été',       weeks: [...Array(21).keys()].map(i => i + 22) },          // 22-42
+    { name: 'Automne',   weeks: [...Array(8).keys()].map(i => i + 43) },           // 43-50
+    { name: 'Hiver',     weeks: [51, 52], suffix: ' (fin)' },
+  ];
+  let html = '';
+  for (const s of seasons) {
+    const sm = SM[s.name];
+    html += `<div class="year-season-head" style="color:${sm.color}">${sm.emoji} ${s.name}${s.suffix || ''}
+      <span class="year-season-badge" style="background:${sm.bg};color:${sm.color}">${s.weeks.length} sem</span>
+    </div>`;
+    html += `<div class="year-grid">`;
+    for (const w of s.weeks) {
+      const items = bw[w] || [];
+      const first = items.find(r => hasOwnPhoto(r)) || items[0];
+      const photoUrl = first ? getPhoto(first) : null;
+      const emoji = weekEmoji(w) || '📅';
+      const isCur = w === cur;
+      const cls = ['year-cell'];
+      if (isCur) cls.push('current');
+      const imgMarkup = photoUrl
+        ? `<img class="year-cell-img" src="${photoUrl}" loading="lazy">`
+        : `<div class="year-cell-empty" style="background:${sm.bg}">${sm.emoji}</div>`;
+      html += `<button class="${cls.join(' ')}" onclick="yearCellClick(${w})">
+        <div class="year-cell-img-wrap">${imgMarkup}</div>
+        <div class="year-cell-body">
+          <span class="year-cell-emoji">${emoji}</span>
+          <span class="year-cell-num">S${String(w).padStart(2, '0')}</span>
+          <span class="year-cell-count">${items.length} recette${items.length > 1 ? 's' : ''}</span>
+        </div>
+      </button>`;
+    }
+    html += `</div>`;
+  }
+  return html;
+}
+
+function yearCellClick(w){
+  selectedWeek = w;
+  goTo('semaines');
+  buildSemaines();
+}
+
+// ── Tab 3 : Suggestions ───────────────────────────────────────────────
+function suggestionsFor(week, seed){
+  const s = saison(week);
+  // Recettes éligibles : bonne saison, pas "à remplacer"
+  const eligible = (all || []).filter(r => {
+    if (r.avis === '🤢 A remplacer') return false;
+    if (Array.isArray(r.saison) && r.saison.length && !r.saison.includes(s)) return false;
+    return true;
+  });
+  // Exclure recettes déjà dans semaines voisines (-1, current, +1)
+  const adjacentWeeks = new Set([ww(week - 1), week, ww(week + 1)]);
+  const inAdjacent = new Set();
+  for (const r of (all || [])) {
+    if (!Array.isArray(r.semaines)) continue;
+    for (const sw of r.semaines) {
+      const n = WM[sw];
+      if (n != null && adjacentWeeks.has(n)) { inAdjacent.add(r.id); break; }
+    }
+  }
+  const candidates = eligible.filter(r => !inAdjacent.has(r.id));
+  // Scoring : coup de cœur > approuvé > ca passe > rien
+  const score = (r) => {
+    let v = 0;
+    if (r.avis === '❤️ Coup de coeur') v += 30;
+    else if (r.avis === '✅ Testé et approuvé') v += 20;
+    else if (r.avis === '🤔 Ca passe toujours') v += 10;
+    if (hasOwnPhoto(r)) v += 5; // bonus si photo perso
+    return v;
+  };
+  // Shuffle déterministe avec seed
+  const rng = mulberry32(seed);
+  const ranked = candidates.map(r => ({ r, k: score(r) + rng() * 5 }));
+  ranked.sort((a, b) => b.k - a.k);
+  // Idéalement : 1 quiche/cake/tarte, 1 soupe/salade, 1 viande, 1 végé, 1 libre
+  const wantedTypes = [
+    { match: r => (r.type_plat || []).some(t => /Quiche|Tarte|Cake/i.test(t)) },
+    { match: r => (r.type_plat || []).some(t => /Soupe|Salade/i.test(t)) },
+    { match: r => (r.type_plat || []).some(t => /Dimanche/i.test(t)) },
+    { match: r => r.regime === 'Végé' || r.regime === 'Vegan' },
+    { match: r => true },
+  ];
+  const picked = [];
+  const pickedIds = new Set();
+  for (const w of wantedTypes) {
+    const found = ranked.find(({ r }) => !pickedIds.has(r.id) && w.match(r));
+    if (found) {
+      picked.push(found.r);
+      pickedIds.add(found.r.id);
+    }
+  }
+  // Compléter à 5
+  for (const { r } of ranked) {
+    if (picked.length >= 5) break;
+    if (!pickedIds.has(r.id)) {
+      picked.push(r);
+      pickedIds.add(r.id);
+    }
+  }
+  return picked.slice(0, 5);
+}
+
+function mulberry32(seed){
+  let a = seed | 0;
+  return function(){
+    a = a + 0x6D2B79F5 | 0;
+    let t = a;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function getSuggestionSeed(week){
+  if (!suggestionsCache[week]) suggestionsCache[week] = Math.floor(Math.random() * 1e9);
+  return suggestionsCache[week];
+}
+
+function renderSuggestions(){
+  const w = planningWeek;
+  const s = saison(w);
+  const sm = SM[s];
+  const seed = getSuggestionSeed(w);
+  const recs = suggestionsFor(w, seed);
+  let html = weekPickerHTML(w);
+  html += `<div class="sugg-intro">
+    Pour <strong>${WL[w] || 'la semaine ' + w}</strong> <span style="color:${sm.color}">${sm.emoji} ${s}</span>, voici 5 idées équilibrées (coup de cœur, recettes pas faites récemment, bon régime, etc.).
+  </div>`;
+  html += `<div class="sugg-actions">
+    <button class="sugg-action-btn" onclick="suggestionsShuffle()">🔀 Mélanger</button>
+  </div>`;
+  if (!recs.length) {
+    html += `<div class="shopping-empty">Aucune recette ne correspond aux critères. Essaie une autre semaine.</div>`;
+    return html;
+  }
+  html += `<div class="sugg-list">`;
+  for (const r of recs) {
+    const ts = typeStyle(r.type_plat);
+    const imgHtml = imgOrPlaceholder(r, 'sugg-card-img');
+    const isAssigned = (r.semaines || []).some(sw => WM[sw] === w);
+    html += `<div class="sugg-card" onclick="openSheet('${r.id}')">
+      ${imgHtml}
+      <div class="sugg-card-body" onclick="event.stopPropagation()">
+        <div class="sugg-card-title">${escHtml(r.titre)}</div>
+        <div class="sugg-card-meta">${ts.label}${r.regime ? ' · ' + r.regime : ''}${r.cuisine ? ' · ' + r.cuisine : ''}</div>
+        <div class="sugg-card-actions">
+          ${isAssigned
+            ? `<button class="sugg-card-btn secondary" disabled>✓ Déjà ajouté</button>`
+            : `<button class="sugg-card-btn" onclick="suggestionAddTo('${r.id}', ${w})">Ajouter à ${WL[w] ? 'cette sem.' : 'sem. ' + w}</button>`}
+        </div>
+      </div>
+    </div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function suggestionsShuffle(){
+  suggestionsCache[planningWeek] = Math.floor(Math.random() * 1e9);
+  buildPlanning();
+}
+
+async function suggestionAddTo(recetteId, week){
+  const r = (all || []).find(x => String(x.id) === String(recetteId));
+  if (!r) return;
+  const weekLabel = WL[week] || `Semaine ${week}`;
+  const newSemaines = [...(r.semaines || [])];
+  if (!newSemaines.includes(weekLabel)) newSemaines.push(weekLabel);
+  try {
+    const res = await fetch(`${SB}/rest/v1/recettes?id=eq.${recetteId}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': KEY,
+        'Authorization': `Bearer ${KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({ semaines: newSemaines })
+    });
+    if (!res.ok) throw new Error(await res.text().catch(() => res.status));
+    const updated = (await res.json())[0];
+    const idx = all.findIndex(x => String(x.id) === String(recetteId));
+    if (idx >= 0) all[idx] = updated;
+    buildPlanning();
+    buildSemaines();
+    filterCat();
+  } catch (e) {
+    console.error('Suggestion add:', e);
+    alert('Erreur : ' + e.message);
+  }
 }
 
 function openAddRecette(){
