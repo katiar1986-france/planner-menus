@@ -380,6 +380,7 @@ body {
   overflow-x: auto; scrollbar-width: none;
 }
 .filter-row::-webkit-scrollbar { display: none; }
+.filter-row-season { padding-top: 8px; padding-bottom: 4px; }
 .filter-chip {
   flex-shrink: 0; padding: 7px 14px; border-radius: 20px;
   border: none; background: #F0F0F0;
@@ -1294,6 +1295,14 @@ body {
     <button class="filter-chip" onclick="setFilter('Viande',this)">🥩 Viande</button>
     <button class="filter-chip" onclick="setFilter('Flexi',this)">🍽️ Flexi</button>
   </div>
+  <div class="filter-row filter-row-season">
+    <button class="filter-chip active" onclick="setSeasonFilter('',this)">Toutes saisons</button>
+    <button class="filter-chip" onclick="setSeasonFilter('current',this)">🌟 En saison</button>
+    <button class="filter-chip" onclick="setSeasonFilter('Hiver',this)">❄️ Hiver</button>
+    <button class="filter-chip" onclick="setSeasonFilter('Printemps',this)">🌸 Printemps</button>
+    <button class="filter-chip" onclick="setSeasonFilter('Été',this)">☀️ Été</button>
+    <button class="filter-chip" onclick="setSeasonFilter('Automne',this)">🍂 Automne</button>
+  </div>
   <div class="catalogue-scroll">
     <div class="loader-wrap" id="loader-c">
       <div class="loader"></div>
@@ -1509,7 +1518,7 @@ function regimeStyle(r){
 }
 function avisIcon(a){return a==='❤️ Coup de coeur'?'❤️':a==='✅ Testé et approuvé'?'✅':a==='🤔 Ca passe toujours'?'🤔':'';}
 
-let all=[], activeFilter='', selectedWeek=null;
+let all=[], activeFilter='', activeSeasonFilter='', selectedWeek=null;
 
 // ── État "recette terminée" (persistance locale, multi-device viendra plus tard)
 const DONE_KEY='planner-menus-done-v1';
@@ -1759,12 +1768,29 @@ function filterCat(){
   let items=all;
   if(activeFilter==='❤️') items=items.filter(r=>r.avis==='❤️ Coup de coeur');
   else if(activeFilter) items=items.filter(r=>r.regime===activeFilter);
+  // Saison : 'current' = saison de la semaine en cours, sinon nom direct
+  if(activeSeasonFilter){
+    let target = activeSeasonFilter;
+    if(activeSeasonFilter === 'current'){
+      target = saison(isoWeek(new Date()));
+    }
+    items = items.filter(r => Array.isArray(r.saison) && r.saison.includes(target));
+  }
   if(q) items=items.filter(r=>r.titre.toLowerCase().includes(q));
   renderCat(items);
 }
 function setFilter(f,btn){
   activeFilter=f;
-  document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+  // Scope au premier filter-row uniquement (sans la saison)
+  const row = btn.closest('.filter-row');
+  if(row) row.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filterCat();
+}
+function setSeasonFilter(value,btn){
+  activeSeasonFilter=value;
+  const row = btn.closest('.filter-row');
+  if(row) row.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   filterCat();
 }
