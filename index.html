@@ -1406,6 +1406,13 @@ function toggleDone(event, recetteId, week){
   if(doneSet.has(k)) doneSet.delete(k); else doneSet.add(k);
   saveDone();
   buildSemaines();
+  // Si la sheet semaine est ouverte, on la re-rend aussi
+  if (sheetWeek != null) {
+    const sheet = document.getElementById('sheet');
+    const top = sheet.scrollTop;
+    document.getElementById('sheet-body').innerHTML = buildWeekSheetHTML(sheetWeek);
+    sheet.scrollTop = top;
+  }
 }
 
 function isoWeekMonday(year, week){
@@ -1643,6 +1650,12 @@ let currentSheetId = null;
 function openSheet(id){
   const r=all.find(x=>String(x.id)===String(id));
   if(!r){console.warn('Recette non trouvée:',id);return;}
+  // Si la sheet affiche actuellement une semaine, on pousse cet état dans la pile
+  // pour pouvoir y revenir à la fermeture de la fiche recette.
+  if (sheetWeek != null) {
+    sheetStack.push({ type: 'week', w: sheetWeek });
+    sheetWeek = null;
+  }
   currentSheetId=id;
   const ts=typeStyle(r.type_plat);
   const rs=r.regime?regimeStyle(r.regime):null;
@@ -2037,7 +2050,21 @@ function onPhotoTouchEnd(){
 function closeSheet(){
   const sheet=document.getElementById('sheet');
   const overlay=document.getElementById('overlay');
-  // Si on a un transform inline (swipe en cours), on anime depuis la position courante
+  // Pile de retour : si on vient d'une vue semaine (Année → semaine → recette),
+  // on revient à la semaine au lieu de fermer complètement.
+  if (sheetStack.length > 0) {
+    const prev = sheetStack.pop();
+    if (prev && prev.type === 'week') {
+      // Annule un éventuel transform de swipe
+      sheet.style.transition='';
+      sheet.style.transform='';
+      overlay.style.opacity='';
+      currentSheetId = null;
+      openWeekSheet(prev.w);
+      return;
+    }
+  }
+  // Fermeture complète
   sheet.style.transition='';
   if(sheet.style.transform){
     sheet.style.transform='translateX(-50%) translateY(102%)';
@@ -2047,6 +2074,7 @@ function closeSheet(){
   overlay.classList.remove('open');
   overlay.style.opacity='';
   currentSheetId=null;
+  sheetWeek=null;
 }
 
 // ── Swipe down to dismiss (sheet) ────────────────────────────────────────
@@ -2606,9 +2634,130 @@ function renderYearCalendar(){
 }
 
 function yearCellClick(w){
-  selectedWeek = w;
-  goTo('semaines');
-  buildSemaines();
+  // Reset l'éventuel état de pile précédent (navigation directe depuis Année)
+  sheetStack = [];
+  openWeekSheet(w);
+}
+
+// ── Sheet "semaine" (ouverte depuis la vue Année) ─────────────────────
+let sheetWeek = null;     // numéro de semaine actuellement affiché dans la sheet
+let sheetStack = [];      // historique pour le bouton retour (ex: week → recipe → close = back to week)
+
+function openWeekSheet(w){
+  sheetWeek = w;
+  const sheet = document.getElementById('sheet');
+  document.getElementById('sheet-body').innerHTML = buildWeekSheetHTML(w);
+  sheet.scrollTop = 0;
+  // Reset any inline transform from a previous swipe
+  sheet.style.transition = '';
+  sheet.style.transform = '';
+  const overlay = document.getElementById('overlay');
+  overlay.style.opacity = '';
+  if (!sheet.classList.contains('open')) {
+    requestAnimationFrame(() => {
+      sheet.classList.add('open');
+      overlay.classList.add('open');
+    });
+  }
+}
+
+function buildWeekSheetHTML(w){
+  const now = new Date(), cur = isoWeek(now);
+  const s = saison(w), sm = SM[s];
+  const bw = {};
+  (all || []).forEach(r => (r.semaines || []).forEach(sw => {
+    const n = WM[sw];
+    if (n != null) { if (!bw[n]) bw[n] = []; bw[n].push(r); }
+  }));
+  const rawItems = bw[w] || [];
+  const items = rawItems.slice().sort((a, b) => (isDone(a.id, w) ? 1 : 0) - (isDone(b.id, w) ? 1 : 0));
+  const heroFromRecipe = items.find(r => hasOwnPhoto(r));
+  const heroUrl = heroFromRecipe ? getPhoto(heroFromRecipe) : getSeasonPackPhoto(s, w);
+  const heroMarkup = heroUrl
+    ? `<img class="week-hero-img" src="${heroUrl}" loading="lazy">`
+    : `<div class="week-hero-img img-placeholder"><span class="ph-emoji">${sm.emoji}</span></div>`;
+  const label = WL[w] || `Semaine ${w}`;
+  let eyebrow, sub;
+  if (w === cur) {
+    eyebrow = 'Cette semaine';
+    sub = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  } else {
+    const diff = ((w - cur + 52) % 52);
+    const signed = diff > 26 ? diff - 52 : diff;
+    if (signed === -1) eyebrow = 'Semaine passée';
+    else if (signed === 1) eyebrow = 'Semaine prochaine';
+    else if (signed < 0) eyebrow = `Il y a ${-signed} semaines`;
+    else eyebrow = `Dans ${signed} semaines`;
+    const range = weekDateRange(now.getFullYear(), w);
+    sub = `${fmtDateShort(range.monday)} → ${fmtDateShort(range.sunday)}`;
+  }
+  const prevW = ww(w - 1), nextW = ww(w + 1);
+  const doneCount = items.filter(r => isDone(r.id, w)).length;
+  const countLabel = `${items.length} ${items.length > 1 ? 'recettes' : 'recette'}${doneCount ? ` · ${doneCount} ✓` : ''}`;
+
+  let html = `
+    <button class="sheet-close" onclick="closeSheet()" aria-label="Fermer">✕</button>
+    <div class="week-hero" style="height:240px;border-radius:0">
+      ${heroMarkup}
+      <div class="week-hero-overlay"></div>
+      ${w !== cur ? `<button class="today-pill" style="top:18px;left:14px;right:auto" onclick="openWeekSheet(${cur})">Aujourd'hui ⤴</button>` : ''}
+      <div class="week-hero-content">
+        <div class="week-hero-eyebrow">${eyebrow}</div>
+        <div class="week-hero-title">${label}</div>
+        <div class="week-hero-sub">${sub}</div>
+        <div class="week-hero-tags">
+          <span class="saison-tag" style="background:${sm.bg};color:${sm.color}">${sm.emoji} ${s}</span>
+          ${items.length ? `<span class="count-tag">${countLabel}</span>` : ''}
+        </div>
+      </div>
+    </div>
+    <div class="week-nav">
+      <button class="week-nav-btn prev" onclick="openWeekSheet(${prevW})">
+        <span class="week-nav-arrow">←</span>
+        <span class="week-nav-label">
+          <span class="week-nav-eyebrow">Précédente</span>
+          <span class="week-nav-value">${WL[prevW] || ('Sem ' + prevW)}</span>
+        </span>
+      </button>
+      <button class="week-nav-btn next" onclick="openWeekSheet(${nextW})">
+        <span class="week-nav-label">
+          <span class="week-nav-eyebrow">Prochaine</span>
+          <span class="week-nav-value">${WL[nextW] || ('Sem ' + nextW)}</span>
+        </span>
+        <span class="week-nav-arrow">→</span>
+      </button>
+    </div>`;
+
+  if (!items.length) {
+    html += `<div class="empty-state">Aucune recette planifiée pour cette semaine</div>`;
+  } else {
+    html += `<div class="recipes-list">`;
+    items.forEach((r, j) => {
+      const ts = typeStyle(r.type_plat);
+      const rs = r.regime ? regimeStyle(r.regime) : null;
+      const av = avisIcon(r.avis);
+      const done = isDone(r.id, w);
+      html += `<div class="recipe-card${done ? ' done' : ''}" onclick="openSheet('${r.id}')">
+        <div class="card-img-wrap">
+          ${imgOrPlaceholder(r, 'card-img')}
+          <div class="card-img-overlay"></div>
+          <button class="card-check${done ? ' checked' : ''}" aria-label="${done ? 'Décocher' : 'Marquer comme fait'}" onclick="toggleDone(event,'${r.id}',${w})">✓</button>
+          ${av ? `<div class="card-avis">${av}</div>` : ''}
+          <div class="card-type-badge" style="background:${ts.bg};color:${ts.color}">${ts.label}</div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">${r.titre}</div>
+          <div class="card-meta">
+            ${rs ? `<span class="card-tag" style="background:${rs.bg};color:${rs.c}">${r.regime}</span>` : ''}
+            ${r.cuisine ? `<span class="card-tag" style="background:rgba(0,0,0,0.06);color:#555">${r.cuisine}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  html += `<div class="sheet-pb"></div>`;
+  return html;
 }
 
 // ── Tab 3 : Suggestions ───────────────────────────────────────────────
