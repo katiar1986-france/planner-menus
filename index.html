@@ -770,54 +770,129 @@ const SM={
   Automne:{emoji:'🍂',color:'#d0521a',bg:'rgba(208,82,26,0.15)'},
 };
 
-// Retourne l'URL de la photo perso si elle existe, sinon null.
-// (L'ancien fallback Unsplash a été retiré : source.unsplash.com a été
-// déprécié et renvoyait des images cassées. On utilise désormais
-// `imgOrPlaceholder` pour générer un placeholder dégradé + emoji.)
+// Retourne l'URL de photo "principale" pour une recette.
+// Priorité : photos[0] (multi-photos futur) > photo_url (legacy) > pack Unsplash.
+// Le pack est piochés de façon déterministe (hash du titre) donc une
+// recette donnée a toujours la même photo.
 function getPhoto(r){
-  if(r && r.photo_url && typeof r.photo_url === 'string' && r.photo_url.trim()) return r.photo_url;
-  return null;
+  if (r && Array.isArray(r.photos) && r.photos.length && r.photos[0]) return r.photos[0];
+  if (r && r.photo_url && typeof r.photo_url === 'string' && r.photo_url.trim()) return r.photo_url;
+  return getPackPhoto(r);
+}
+// Vrai si la photo vient des données (perso), faux si elle vient du pack
+function hasOwnPhoto(r){
+  if (r && Array.isArray(r.photos) && r.photos.length && r.photos[0]) return true;
+  if (r && r.photo_url && typeof r.photo_url === 'string' && r.photo_url.trim()) return true;
+  return false;
 }
 
-function recipeEmoji(r){
+// Mapping unifié titre/type → catégorie de plat (utilisé pour l'emoji
+// placeholder ET pour piocher une photo dans le pack Unsplash)
+const RECIPE_CATEGORIES = [
+  { keys: ['soupe','velouté','bouillon'], emoji: '🍲', cat: 'soupe' },
+  { keys: ['lasagne'], emoji: '🥘', cat: 'lasagne' },
+  { keys: ['gratin'], emoji: '🧀', cat: 'gratin' },
+  { keys: ['risotto'], emoji: '🍚', cat: 'risotto' },
+  { keys: ['salade','caesar'], emoji: '🥗', cat: 'salade' },
+  { keys: ['quiche','tarte','clafoutis','feuilleté'], emoji: '🥧', cat: 'quiche' },
+  { keys: ['cake'], emoji: '🎂', cat: 'dessert' },
+  { keys: ['pâtes','spaghetti','penne','farfalle','gnocchi','ravioles','crozets','tagliatelle','nouilles'], emoji: '🍝', cat: 'pates' },
+  { keys: ['poulet','dinde'], emoji: '🍗', cat: 'poulet' },
+  { keys: ['boeuf','agneau','porc','veau','paupiette','blanquette','bourguignon','osso','rôti','jambon','filet'], emoji: '🥩', cat: 'viande' },
+  { keys: ['saumon','truite','cabillaud','colin','poisson'], emoji: '🐟', cat: 'poisson' },
+  { keys: ['crevette','fruits de mer'], emoji: '🦐', cat: 'crevette' },
+  { keys: ['curry'], emoji: '🍛', cat: 'curry' },
+  { keys: ['ramen','pho','bibimbap'], emoji: '🍜', cat: 'ramen' },
+  { keys: ['riz','wok'], emoji: '🍚', cat: 'riz' },
+  { keys: ['couscous','tajine'], emoji: '🥘', cat: 'couscous' },
+  { keys: ['tacos'], emoji: '🌮', cat: 'tacos' },
+  { keys: ['burger'], emoji: '🍔', cat: 'burger' },
+  { keys: ['dessert','gâteau','crêpe','pancake'], emoji: '🍰', cat: 'dessert' },
+  { keys: ['brochette','bbq'], emoji: '🍢', cat: 'brochette' },
+  { keys: ['poke','bowl'], emoji: '🥣', cat: 'poke' },
+  { keys: ['oeuf','œuf','omelette'], emoji: '🍳', cat: 'oeuf' },
+  { keys: ['fromage','feta','mozzarella','chèvre','parmesan','reblochon','boursin'], emoji: '🧀', cat: 'gratin' },
+  { keys: ['légume','crudité','végé','vegan','epinard','épinard','chou','brocoli'], emoji: '🥬', cat: 'legume' },
+];
+
+function recipeMatch(r){
   const t = ((r && r.titre) || '').toLowerCase();
   const ty = ((r && r.type_plat) || []).join(' ').toLowerCase();
   const s = t + ' ' + ty;
-  const map = [
-    [['soupe','velouté','bouillon'], '🍲'],
-    [['lasagne'], '🥘'],
-    [['gratin'], '🧀'],
-    [['risotto'], '🍚'],
-    [['salade','caesar'], '🥗'],
-    [['quiche','tarte','clafoutis','feuilleté'], '🥧'],
-    [['cake'], '🎂'],
-    [['pâtes','spaghetti','penne','farfalle','gnocchi','ravioles','crozets','tagliatelle','nouilles'], '🍝'],
-    [['poulet','dinde'], '🍗'],
-    [['boeuf','agneau','porc','veau','paupiette','blanquette','bourguignon','osso','rôti','jambon','filet'], '🥩'],
-    [['saumon','truite','cabillaud','colin','poisson'], '🐟'],
-    [['crevette','fruits de mer'], '🦐'],
-    [['curry'], '🍛'],
-    [['ramen','pho','bibimbap'], '🍜'],
-    [['riz','wok'], '🍚'],
-    [['couscous','tajine'], '🥘'],
-    [['tacos'], '🌮'],
-    [['burger'], '🍔'],
-    [['dessert','gâteau','crêpe','pancake'], '🍰'],
-    [['brochette','bbq'], '🍢'],
-    [['poke','bowl'], '🥣'],
-    [['oeuf','œuf','omelette'], '🍳'],
-    [['fromage','feta','mozzarella','chèvre','parmesan','reblochon','boursin'], '🧀'],
-    [['légume','crudité','végé','vegan','epinard','épinard','chou','brocoli'], '🥬'],
-  ];
-  for (const [keys, emoji] of map) {
-    if (keys.some(k => s.includes(k))) return emoji;
+  for (const c of RECIPE_CATEGORIES) {
+    if (c.keys.some(k => s.includes(k))) return c;
   }
-  return '🥘';
+  return null;
+}
+function recipeEmoji(r){
+  const m = recipeMatch(r);
+  return m ? m.emoji : '🥘';
+}
+function recipeCategory(r){
+  const m = recipeMatch(r);
+  return m ? m.cat : 'default';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// PACK PHOTOS UNSPLASH (URLs stables, pas d'API key requise)
+// Curé via WebFetch sur unsplash.com/s/photos/<categorie>
+// ═══════════════════════════════════════════════════════════════════════
+const PHOTO_PACK = {
+  soupe: ['1476718406336-bb5a9690ee2a','1613844237701-8f3664fc2eff','1616501268826-ee9731c915d4','1652088079703-38f4a8d6b981','1701109876066-7fc0c08da447','1616501268209-edfff098fdd2','1681378128359-a5c2492a3535','1621608953630-00d9eb860392','1652288282543-0fc019cfc457','1625535608282-8f181a38f9e7','1712502587856-f7bb3d783b15','1666819632298-fe15dc7d4c34','1629978444632-9f63ba0eff47','1620256114757-322387444c16','1629978448078-c94a0ab6500f'],
+  lasagne: ['1709429790175-b02bb1b19207','1730900737654-ac6d843139da','1574894709920-11b28e7367e3','1629115916087-7e8c114a24ed','1625555897305-136548cc968c','1619895092538-128341789043','1597289124948-688c1a35cb48','1619894991209-9f9694be045a','1586197132548-e2e19edf9f89','1621510456681-2330135e5871','1560035285-64808ba47bda','1510693206972-df098062cb71','1633436374784-7f9502eb348a','1614961909013-1e2212a2ca87','1634870487473-15874d3a0f35'],
+  gratin: ['1609183228792-9ae095426310','1592931919197-9a0e7ed89b80','1609183200197-5a98fb5cb752','1626200725138-453dac7e46ab','1710024893536-1b47d97cad43','1645453014403-4ad5170a386c','1710024893503-2c91534d284a','1710024893533-3e3fc8bb6971','1710024894301-e4b0b15ad587','1612949060117-eb84d49a03f4'],
+  risotto: ['1637361874063-e5e415d7bcf7','1476124369491-e7addf5db371','1682428617976-f25633ed8469','1712407881629-a8ca82a3c64f','1609770424775-39ec362f2d94','1633964913295-ceb43826e7c9','1621341258668-b2bf005a9f97','1637361875628-c8617fdda8db','1581073746562-e7fd2422f0eb','1637361973734-5faf9b1e923e','1461009683693-342af2f2d6ce','1595908129746-57ca1a63dd4d','1655633593521-d529c5e7e037','1613758235256-43a7bdc21d82','1680404840959-3211731fbb52'],
+  salade: ['1512621776951-a57141f2eefd','1546069901-ba9599a7e63c','1600335895229-6e75511892c8','1623428187969-5da2dcea5ebf','1547496502-affa22d38842','1572449043416-55f4685c9bb7','1631311695255-8dde6bf96cb5','1604497198754-a2183225cdc4','1546069901-d5bfd2cbfb1f','1646487793655-bbf280273d2f','1623489254660-db5b367881d9','1606757819934-d61a9f7279d5','1679744034792-705da160c109','1623428188495-89c064ee061a','1604497181015-76590d828b75'],
+  quiche: ['1591985666643-1ecc67616216','1650844010413-3f24dc1c182b','1565181782289-457ee028de39','1608855238293-a8853e7f7c98','1608855725042-e95ffd4ca487','1679116136154-1b621f97b31e','1612477491914-a2f46ef8586e','1565593427994-7d6d81690905','1551807501-9263ed1942d8','1618946440416-ef676a06a913','1511896936-104afaf25887','1602015999555-66df95cd9098','1490556278693-b666672547a1','1456014673271-90b7fddf2eea','1721460195314-b18fa6e64a10'],
+  pates: ['1621996346565-e3dbc646d9a9','1611270629569-8b357cb88da9','1556761223-4c4282c73f77','1516100882582-96c3a05fe590','1598720290281-9f26ae6d6f81','1627042633145-b780d842ba45','1612966893103-790e549a2ab1','1587682725980-b9ac16626266','1606091484089-089fa86fad4f','1662197480393-2a82030b7b83','1516685018646-549198525c1b','1589227365423-d87e646beaac','1481931098730-318b6f776db0','1616299915952-04c803388e5f'],
+  poulet: ['1606728035253-49e8a23146de','1587593810167-a84920ea0781','1638439430466-b2bb7fdc1d67','1615557960916-5f4791effe9d','1598103442097-8b74394b95c6','1594221708779-94832f4320d1','1574672280600-4accfa5b6f98','1630564510761-a560db92a09b','1672787153720-e85fe802fd9f','1501200291289-c5a76c232e5f','1650855543755-f300cd0dff3c','1630564510791-1b8a156ec387','1652545296821-09a023a9fd08','1672787153655-0c19308dcc60','1712579733874-c3a79f0f9d12'],
+  viande: ['1588168333986-5078d3ae3976','1723893905879-0e309c2a8e06','1529692236671-f1f6cf9683ba','1690983325551-b922137727be','1603048297172-c92544798d5a','1546964124-0cce460f38ef','1690983323238-0b91789e1b5a','1558030006-450675393462','1613454320437-0c228c8b1723','1690983330536-3b0089d07cf9','1588347818036-558601350947','1551028150-64b9f398f678','1683315446874-e6a629087ef8','1602470520998-f4a52199a3d6'],
+  poisson: ['1519708227418-c8fd9a32b7a2','1580476262798-bddd9f4b7369','1559058789-672da06263d8','1560717845-968823efbee1','1601314002592-b8734bca6604','1611599537845-1c7aca0091c0','1467003909585-2f8a72700288','1509402308-817902776267','1611657366409-55549160be82','1676300185165-3f543c1fcb72','1515036918611-4b7f32b8406c','1601316585772-ba1e6dae9cfc','1629723448738-03475a1e536d','1656389863341-1dfd38ee6edc','1712334562767-5d366d0c40d9'],
+  crevette: ['1628919350249-eb45d8829629','1559737558-2f5a35f4523b','1548587468-971ebe4c8c3b','1722192147966-14444c832f53','1504309250229-4f08315f3b5c','1550951791-cbf1ff280109','1559742811-822873691df8','1538960792157-b2e2b62d1f3c','1565680018434-b513d5e5fd47','1657856282105-952b3c683d15','1578069744397-2f3942a02a7b','1674962296996-b17a771d44b3','1674066621842-8c830e392618','1657856198189-fbfaa6f798bb','1602160187512-f87b7203f21b'],
+  curry: ['1585937421612-70a008356fbe','1584278859516-41e5af3920ee','1716535232842-d10da4eb33d5','1612700722193-f0410adb8949','1585417791023-a5a6164b2646','1577186912275-4f74c57458ef','1543352634-a1c51d9f1fa7','1554054204-b2f70b09d031','1617093727343-374698b1b08d','1679279726937-122c49626802','1679279726946-a158b8bcaa23','1751967247928-803e50d1d777','1710091691771-96b2e6d17dac'],
+  ramen: ['1612929633738-8fe44f7ec841','1612927601601-6638404737ce','1569718212165-3a8278d5f624','1623341214825-9f4f963727da','1638866281450-3933540af86a','1627900440398-5db32dba8db1','1684707878393-02606f779d7f','1628919311414-1ee37e9ed8ff','1591814468924-caf88d1232e1','1614563637806-1d0e645e0940','1588001291548-948f55922bfd','1600326145359-3a44909d1a39','1609672655400-c509bdbcf7e2','1597394412452-60ed971d3917','1731460202531-bf8389d565f7'],
+  riz: ['1536304993881-ff6e9eefa2a6','1516684732162-798a0062be99','1610663711502-35f870cfaea2','1644131447497-8723db691320','1556040220-4096d522378d','1540100716001-4b432820e37f','1705147289789-6df2593f1b1e','1682566509568-ded8649b26bb','1630257527668-c27eb6a427a4','1625980319455-985e5442c5ae','1520066391310-428f06ebd602','1615865417491-9941019fbc00'],
+  couscous: ['1661083098412-054431ab7112','1682370207954-c8a9cccaabb4','1519624014191-508652cbd7b5','1643019237176-8ae0859f1123','1673283547641-16ddb83eb787','1567596045677-50ea5cdf2ea7','1706793986649-5c6516491489','1706794831005-e0cbae755fae','1739217744880-472f59559cc5','1541518763669-27fef04b14ea','1729442045755-1f663f313684','1737210235283-7675f83efc59','1682285843664-ea9b067c5831','1703100552908-c7f8415f1a40','1749993086443-93a5a88eb4c2'],
+  tacos: ['1565299585323-38d6b0865b47','1599974579688-8dbdd335c77f','1551504734-5ee1c4a1479b','1552332386-f8dd00dc2f85','1613514785940-daed07799d9b','1615870216519-2f9fa575fa5c','1629793980446-192d630f0dbe','1648437595587-e6a8b0cdf1f9','1627564803215-ad55bad5c5ea','1683062332605-4e1209d75346','1700625916627-16ad4fb0553c','1599488400918-5f5f96b3f463','1564767655658-4e6b365884ff','1574782091246-c65ed4510300','1582234372722-50d7ccc30ebd'],
+  burger: ['1568901346375-23c9450c58cd','1586190848861-99aa4a171e90','1572802419224-296b0aeee0d9','1550547660-d9450f859349','1610440042657-612c34d95e9f','1603064752734-4c48eff53d05','1571091718767-18b5b1457add','1607013251379-e6eecfffe234','1530554764233-e79e16c91d08','1625813506062-0aeb1d7a094b','1549611016-3a70d82b5040','1551782450-a2132b4ba21d','1713330801172-03f8d1c0dde7','1633424234673-c8cd0f4df77b','1594212699903-ec8a3eca50f5'],
+  dessert: ['1588195538326-c5b1e9f80a1b','1568827999250-3f6afff96e66','1605807646983-377bc5a76493','1530648672449-81f6c723e2f1','1516054575922-f0b8eeadec1a','1576618148423-df549bcb6972','1525203135335-74d272fc8d9c','1555050338-0abc773f7978','1624000961428-eeece184988b','1660383534593-6b5221ab80d2','1469533778471-92a68acc3633','1575919361890-69028a013637','1615735486329-c61cd40bfcc6','1608830597604-619220679440','1615796701805-2094ac54bbf9'],
+  brochette: ['1632158929962-a929c9e87570','1626323109252-0adb3b46692b','1722282470007-893a5607eeb3','1561626423-a51b45aef0a1','1593708659671-595be1c95128','1687365762572-b418d588c225','1626323107927-008ae2828ab6','1626323107982-177d43e5f634','1737140790080-2476f8600131','1594741110899-100869ebd967','1737140790470-d1c4e388a1b2'],
+  poke: ['1597958792579-bd3517df6399','1602881917445-0b1ba001addf','1602881916963-5daf2d97c06e','1604259597308-5321e8e4789c','1556040220-4096d522378d','1600335895229-6e75511892c8','1604259596863-57153177d40b','1670816978291-a5cf23d87968','1623428187969-5da2dcea5ebf','1625248442085-10a1a2563dd6','1602881917760-7379db593981','1633862472152-e3873eb1b3ff','1561954468-039c5f32644d','1661257711676-79a0fc533569'],
+  oeuf: ['1668283653825-37b80f055b05','1687630433865-f86f07be989a','1665206231479-6bff0bdcd51d','1494597706938-de2cd7341979','1709754521379-00166805eea4','1677137261161-0095c10418ef','1583552336796-531290f1fe2a','1654472353886-ce1802ff2470','1639669794539-952631b44515','1717261592764-d09e0c1ba6c4','1615086041895-7ee4caecf7cf','1591114320268-fb3aac361d8e','1648846034788-bc98716fa4cc','1654921715411-a49607858faf','1759216277712-c6d276710734'],
+  legume: ['1606791422814-b32c705e3e2f','1518133299975-8e1b628e1cfd','1523813301608-f54a198f6b5f','1536329711767-2ad681b7bf9b','1586195833898-170cabf110c5','1644704402990-7e7f929bce17','1591267789076-2ea305ab92ec','1572928896925-36df69c2567c','1572928897635-43255c43bdde','1712607613395-3f0612ad16eb','1622768505337-ed0f06f22b54','1636635857083-c345c94519ad','1579156143946-7b84ebb069ba'],
+  Hiver: ['1608500219063-e5164085cd6f','1613746192032-bee1894c743e','1476718406336-bb5a9690ee2a','1666819632298-fe15dc7d4c34','1709429790175-b02bb1b19207','1612949060117-eb84d49a03f4','1574894709920-11b28e7367e3','1629115916087-7e8c114a24ed','1592931919197-9a0e7ed89b80','1609183228792-9ae095426310'],
+  Printemps: ['1579113800032-c38bd7635818','1597362925123-77861d3fbac7','1590779033100-9f60a05a013d','1518843875459-f738682238a6','1489450278009-822e9be04dff','1575218823251-f9d243b6f720','1591586116988-62fe65164f8d','1609126986933-e3c84f19d49c','1611693424421-3db00de93a89','1648090229186-6188eaefcc6a','1553787434-45e1d245bfbb','1572357243457-fc153742e7a5','1490072978022-b167e41f8e6f'],
+  Été: ['1471745518196-ed32997e769c','1625367601763-03c05b49937e','1529566652340-2c41a1eb6d93','1621659911279-b08ce9ff421f','1625860652397-b08fed179d0b','1629265824943-b0a19b32c7a0','1657364180968-e0d46138cd7d','1661162630118-e2d47788108d','1627925760000-ab58b9d84432','1596563976827-dedbcd2bc57c','1659292482339-4fe111483d1b','1658215271105-30d14de1f727'],
+  Automne: ['1509622905150-fa66d3906e09','1506900039127-b1cb41deb557','1507546602-311207b97bfa','1569511850437-6dfab062c00b','1633674432402-2f0c8ba69d72','1506918565526-a15fdf909f8e','1602457471441-e7099c989338','1601280398327-586180e5a652','1633955810370-0bbcbdba3e5f','1475349048762-d286a3e98370','1477496525165-e50baba43ed1','1603528283899-d15c8832de80','1476149815180-184327a39be4','1539096567589-dbfe6d0beee2','1603947214027-2c4c36cc4dfd'],
+  default: ['1482049016688-2d3e1b311543','1568901346375-23c9450c58cd','1478145046317-39f10e56b5e9','1532980400857-e8d9d275d858','1556761223-4c4282c73f77','1550547660-d9450f859349','1552611052-33e04de081de','1563379926898-05f4575a45d8','1625813506062-0aeb1d7a094b','1488900128323-21503983a07e','1554520735-0a6b8b6ce8b7','1546549032-9571cd6b27df','1476718406336-bb5a9690ee2a','1506368249639-73a05d6f6488','1496412705862-e0088f16f791'],
+};
+
+function packUrl(id, w=800){
+  return `https://images.unsplash.com/photo-${id}?w=${w}&q=80&auto=format&fit=crop`;
+}
+
+function pickFromPack(list, seed){
+  if (!list || !list.length) return null;
+  const hash = String(seed||'').split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+  return list[Math.abs(hash) % list.length];
+}
+
+function getPackPhoto(r){
+  const cat = recipeCategory(r);
+  const list = PHOTO_PACK[cat] || PHOTO_PACK.default;
+  const id = pickFromPack(list, (r && r.titre) || '');
+  return id ? packUrl(id) : null;
+}
+
+function getSeasonPackPhoto(season, weekNum){
+  const list = PHOTO_PACK[season] || PHOTO_PACK.default;
+  const id = pickFromPack(list, season + ':' + (weekNum||0));
+  return id ? packUrl(id) : null;
 }
 
 function imgOrPlaceholder(r, imgClass){
   const url = getPhoto(r);
-  if (url) return `<img class="${imgClass}" src="${url}" loading="lazy">`;
+  if (url) return `<img class="${imgClass}" src="${url}" loading="lazy" onerror="this.parentNode.insertAdjacentHTML('beforeend','<div class=\\'${imgClass} img-placeholder\\'><span class=\\'ph-emoji\\'>${recipeEmoji(r)}</span></div>');this.remove()">`;
   return `<div class="${imgClass} img-placeholder"><span class="ph-emoji">${recipeEmoji(r)}</span></div>`;
 }
 
@@ -921,10 +996,12 @@ function buildSemaines(){
     const da=isDone(a.id,w)?1:0, db=isDone(b.id,w)?1:0;
     return da-db;
   });
-  // Hero : on prend la première recette qui a une vraie photo. Sinon, placeholder dégradé + emoji de saison.
-  const heroWithPhoto = items.find(r => r && r.photo_url && r.photo_url.trim());
-  const heroMarkup = heroWithPhoto
-    ? `<img class="week-hero-img" src="${heroWithPhoto.photo_url}" loading="lazy">`
+  // Hero : on prend la première recette qui a une vraie photo perso.
+  // Sinon on pioche dans le pack Unsplash de la saison correspondante.
+  const heroFromRecipe = items.find(r => hasOwnPhoto(r));
+  const heroUrl = heroFromRecipe ? getPhoto(heroFromRecipe) : getSeasonPackPhoto(s, w);
+  const heroMarkup = heroUrl
+    ? `<img class="week-hero-img" src="${heroUrl}" loading="lazy">`
     : `<div class="week-hero-img img-placeholder"><span class="ph-emoji">${sm.emoji}</span></div>`;
   const label=WL[w]||`Semaine ${w}`;
 
