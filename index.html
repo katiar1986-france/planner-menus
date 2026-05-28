@@ -734,6 +734,117 @@ body {
 .sugg-card-btn:active { transform: scale(0.95); }
 .sugg-card-btn.secondary { background: #F0F0F0; color: var(--label2); }
 
+/* ── Stats ── */
+.stats-overview {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  padding: 14px 16px 4px;
+}
+.stats-card {
+  background: white; border-radius: 14px; padding: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.stats-card-value {
+  font-size: 26px; font-weight: 900; letter-spacing: -0.5px;
+  color: var(--label); line-height: 1.1;
+}
+.stats-card-label {
+  font-size: 11px; font-weight: 800; color: var(--label3);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-top: 6px;
+}
+.stats-card-sub {
+  font-size: 11px; color: var(--label3); margin-top: 2px; font-weight: 600;
+}
+.stats-section { padding: 18px 0 0; }
+.stats-section-head {
+  font-size: 13px; font-weight: 900; color: var(--label);
+  padding: 0 22px 10px;
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+}
+.stats-section-sub { font-size: 11px; color: var(--label3); font-weight: 600; }
+.stats-top-list { padding: 0 16px; display: flex; flex-direction: column; gap: 6px; }
+.stats-top-row {
+  display: flex; align-items: center; gap: 10px;
+  background: white; padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: transform 0.12s;
+}
+.stats-top-row:active { transform: scale(0.98); }
+.stats-top-rank {
+  font-size: 12px; font-weight: 800; color: var(--label3);
+  width: 22px; text-align: center; flex-shrink: 0;
+}
+.stats-top-img {
+  width: 44px; height: 44px; object-fit: cover; border-radius: 8px;
+  flex-shrink: 0; display: block;
+}
+.stats-top-img.img-placeholder { width: 44px; height: 44px; }
+.stats-top-img.img-placeholder .ph-emoji { font-size: 22px; }
+.stats-top-name {
+  flex: 1; font-size: 13px; font-weight: 700; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.stats-top-count {
+  font-size: 11px; font-weight: 800; color: var(--orange);
+  background: rgba(255,107,46,0.12);
+  padding: 4px 9px; border-radius: 8px;
+  flex-shrink: 0; white-space: nowrap;
+}
+.stats-mini-cards {
+  display: flex; gap: 10px; padding: 0 16px 4px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.stats-mini-cards::-webkit-scrollbar { display: none; }
+.stats-mini-card {
+  flex-shrink: 0; width: 120px;
+  background: white; border-radius: 12px; overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: transform 0.12s;
+  text-align: left;
+  border: none;
+  font-family: var(--f);
+  padding: 0;
+}
+.stats-mini-card:active { transform: scale(0.96); }
+.stats-mini-card-img { width: 100%; height: 82px; object-fit: cover; display: block; }
+.stats-mini-card-img.img-placeholder { height: 82px; }
+.stats-mini-card-img.img-placeholder .ph-emoji { font-size: 30px; }
+.stats-mini-card-body { padding: 8px 9px 10px; }
+.stats-mini-card-title {
+  font-size: 11.5px; font-weight: 800; line-height: 1.3; color: var(--label);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.stats-bars { padding: 0 18px; }
+.stats-bar-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.stats-bar-label {
+  font-size: 12px; font-weight: 700; color: var(--label2);
+  flex-shrink: 0; min-width: 92px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.stats-bar-track {
+  flex: 1; height: 14px; background: #F0F0F0; border-radius: 7px; overflow: hidden;
+}
+.stats-bar-fill {
+  height: 100%; background: var(--orange); border-radius: 7px;
+  transition: width 0.3s ease;
+}
+.stats-bar-value {
+  font-size: 11px; font-weight: 800; color: var(--label2);
+  flex-shrink: 0; min-width: 28px; text-align: right;
+}
+.stats-empty {
+  margin: 12px 16px;
+  padding: 18px;
+  background: white; border-radius: var(--radius);
+  text-align: center; color: var(--label3);
+  font-size: 13px; font-weight: 600;
+  border: 1px dashed rgba(0,0,0,0.1);
+}
+
 /* ══════════════════════════
    BOTTOM SHEET
 ══════════════════════════ */
@@ -1143,6 +1254,7 @@ body {
     <div class="planning-tabs">
       <button class="planning-tab active" data-ptab="annee" onclick="goPlanningTab('annee')">📅 Année</button>
       <button class="planning-tab" data-ptab="suggest" onclick="goPlanningTab('suggest')">🎲 Suggestions</button>
+      <button class="planning-tab" data-ptab="stats" onclick="goPlanningTab('stats')">📊 Stats</button>
     </div>
   </div>
   <div class="planning-scroll" id="planning-scroll">
@@ -2192,6 +2304,7 @@ function buildPlanning(){
   if (!content) return;
   if (currentPlanningTab === 'annee') content.innerHTML = renderYearCalendar();
   else if (currentPlanningTab === 'suggest') content.innerHTML = renderSuggestions();
+  else if (currentPlanningTab === 'stats') content.innerHTML = renderStats();
   // Scroll en haut au changement d'onglet
   const sc = document.getElementById('planning-scroll');
   if (sc) sc.scrollTop = 0;
@@ -2940,6 +3053,163 @@ async function suggestionAddTo(recetteId, week){
     console.error('Suggestion add:', e);
     alert('Erreur : ' + e.message);
   }
+}
+
+// ── Tab 4 : Stats ─────────────────────────────────────────────────────
+function renderStats(){
+  const total = (all || []).length;
+  if (!total) return `<div class="stats-empty">Aucune recette à analyser pour le moment.</div>`;
+
+  const totalPlanifiees = all.filter(r => Array.isArray(r.semaines) && r.semaines.length > 0).length;
+
+  // Recettes cuisinées (au moins une coche dans doneSet)
+  const recettesCuisinees = new Set();
+  for (const k of doneSet) recettesCuisinees.add(k.split('__')[0]);
+  const totalCuisinees = recettesCuisinees.size;
+
+  const coupsCoeur = all.filter(r => r.avis === '❤️ Coup de coeur');
+  const totalCoupsCoeur = coupsCoeur.length;
+  const coupsCoeurPrevus = coupsCoeur.filter(r => Array.isArray(r.semaines) && r.semaines.length > 0).length;
+
+  // Top recettes (par nombre de semaines)
+  const ranked = all
+    .filter(r => Array.isArray(r.semaines) && r.semaines.length > 0)
+    .slice()
+    .sort((a, b) => (b.semaines.length || 0) - (a.semaines.length || 0))
+    .slice(0, 10);
+
+  // Coups de cœur en attente (jamais planifiés)
+  const coupsAttente = coupsCoeur
+    .filter(r => !Array.isArray(r.semaines) || r.semaines.length === 0)
+    .slice(0, 12);
+
+  // Recettes jamais planifiées (toutes confondues)
+  const jamaisPrevues = all
+    .filter(r => (!Array.isArray(r.semaines) || r.semaines.length === 0) && r.avis !== '🤢 A remplacer')
+    .slice(0, 15);
+
+  // Comptages pour graphiques
+  const byType = {}, byRegime = {}, bySaison = {}, byCuisine = {}, byAvis = {};
+  for (const r of all) {
+    (r.type_plat || []).forEach(t => { if (t) byType[t] = (byType[t] || 0) + 1; });
+    if (r.regime) byRegime[r.regime] = (byRegime[r.regime] || 0) + 1;
+    (r.saison || []).forEach(s => { if (s) bySaison[s] = (bySaison[s] || 0) + 1; });
+    if (r.cuisine) byCuisine[r.cuisine] = (byCuisine[r.cuisine] || 0) + 1;
+    if (r.avis) byAvis[r.avis] = (byAvis[r.avis] || 0) + 1;
+  }
+
+  function pct(n, total){ return total ? Math.round(n / total * 100) : 0; }
+
+  let html = `<div class="stats-overview">
+    <div class="stats-card">
+      <div class="stats-card-value">${total}</div>
+      <div class="stats-card-label">Recettes</div>
+      <div class="stats-card-sub">dans le catalogue</div>
+    </div>
+    <div class="stats-card">
+      <div class="stats-card-value">${totalPlanifiees}</div>
+      <div class="stats-card-label">Planifiées</div>
+      <div class="stats-card-sub">${pct(totalPlanifiees, total)}% du catalogue</div>
+    </div>
+    <div class="stats-card">
+      <div class="stats-card-value">${totalCuisinees}</div>
+      <div class="stats-card-label">Cuisinées ✓</div>
+      <div class="stats-card-sub">au moins 1 fois</div>
+    </div>
+    <div class="stats-card">
+      <div class="stats-card-value">${totalCoupsCoeur}</div>
+      <div class="stats-card-label">❤️ Coups de cœur</div>
+      <div class="stats-card-sub">${coupsCoeurPrevus} prévus, ${totalCoupsCoeur - coupsCoeurPrevus} en attente</div>
+    </div>
+  </div>`;
+
+  // Top 10
+  if (ranked.length) {
+    html += `<div class="stats-section">
+      <div class="stats-section-head">
+        <span>Top recettes prévues</span>
+        <span class="stats-section-sub">par nombre de semaines</span>
+      </div>
+      <div class="stats-top-list">`;
+    ranked.forEach((r, i) => {
+      const imgHtml = imgOrPlaceholder(r, 'stats-top-img');
+      html += `<div class="stats-top-row" onclick="openSheet('${r.id}')">
+        <span class="stats-top-rank">#${i + 1}</span>
+        ${imgHtml}
+        <span class="stats-top-name">${escHtml(r.titre)}</span>
+        <span class="stats-top-count">${r.semaines.length}×</span>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Coups de cœur en attente
+  if (coupsAttente.length) {
+    html += `<div class="stats-section">
+      <div class="stats-section-head">
+        <span>❤️ Coups de cœur en attente</span>
+        <span class="stats-section-sub">${coupsAttente.length}</span>
+      </div>
+      <div class="stats-mini-cards">`;
+    for (const r of coupsAttente) {
+      const imgHtml = imgOrPlaceholder(r, 'stats-mini-card-img');
+      html += `<button class="stats-mini-card" type="button" onclick="openSheet('${r.id}')">
+        ${imgHtml}
+        <div class="stats-mini-card-body">
+          <div class="stats-mini-card-title">${escHtml(r.titre)}</div>
+        </div>
+      </button>`;
+    }
+    html += `</div></div>`;
+  }
+
+  // Jamais prévues
+  if (jamaisPrevues.length) {
+    html += `<div class="stats-section">
+      <div class="stats-section-head">
+        <span>Jamais prévues</span>
+        <span class="stats-section-sub">à découvrir</span>
+      </div>
+      <div class="stats-mini-cards">`;
+    for (const r of jamaisPrevues) {
+      const imgHtml = imgOrPlaceholder(r, 'stats-mini-card-img');
+      html += `<button class="stats-mini-card" type="button" onclick="openSheet('${r.id}')">
+        ${imgHtml}
+        <div class="stats-mini-card-body">
+          <div class="stats-mini-card-title">${escHtml(r.titre)}</div>
+        </div>
+      </button>`;
+    }
+    html += `</div></div>`;
+  }
+
+  // Bar charts
+  function barChart(title, data, sub){
+    const entries = Object.entries(data).filter(([k]) => k).sort((a, b) => b[1] - a[1]);
+    if (!entries.length) return '';
+    const max = entries[0][1];
+    let h = `<div class="stats-section">
+      <div class="stats-section-head"><span>${title}</span>${sub ? `<span class="stats-section-sub">${sub}</span>` : ''}</div>
+      <div class="stats-bars">`;
+    for (const [k, v] of entries) {
+      const w = Math.max(2, (v / max * 100).toFixed(0));
+      h += `<div class="stats-bar-row">
+        <span class="stats-bar-label">${escHtml(k)}</span>
+        <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${w}%"></div></div>
+        <span class="stats-bar-value">${v}</span>
+      </div>`;
+    }
+    h += `</div></div>`;
+    return h;
+  }
+  html += barChart('Par type de plat', byType);
+  html += barChart('Par régime', byRegime);
+  html += barChart('Par saison', bySaison);
+  html += barChart('Par cuisine', byCuisine);
+  html += barChart('Par avis', byAvis);
+
+  html += `<div style="height:20px"></div>`;
+  return html;
 }
 
 function openAddRecette(){
