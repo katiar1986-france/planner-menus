@@ -1141,8 +1141,7 @@ body {
   <div class="planning-header">
     <div class="planning-title">Planning</div>
     <div class="planning-tabs">
-      <button class="planning-tab active" data-ptab="courses" onclick="goPlanningTab('courses')">🛒 Courses</button>
-      <button class="planning-tab" data-ptab="annee" onclick="goPlanningTab('annee')">📅 Année</button>
+      <button class="planning-tab active" data-ptab="annee" onclick="goPlanningTab('annee')">📅 Année</button>
       <button class="planning-tab" data-ptab="suggest" onclick="goPlanningTab('suggest')">🎲 Suggestions</button>
     </div>
   </div>
@@ -1152,6 +1151,16 @@ body {
       <div class="loader-text">Chargement…</div>
     </div>
     <div id="planning-content"></div>
+  </div>
+</div>
+
+<!-- SCREEN COURSES -->
+<div class="screen" id="screen-courses">
+  <div class="planning-header">
+    <div class="planning-title">Courses</div>
+  </div>
+  <div class="planning-scroll" id="courses-scroll">
+    <div id="courses-content"></div>
   </div>
 </div>
 
@@ -1186,7 +1195,7 @@ body {
 <nav class="bottom-nav">
   <button class="nav-btn active" id="btn-semaines" onclick="goTo('semaines')">
     <span class="nav-icon">📅</span>
-    <span class="nav-label">Semaines</span>
+    <span class="nav-label">Semaine</span>
   </button>
   <button class="nav-btn" id="btn-planning" onclick="goTo('planning')">
     <span class="nav-icon">📋</span>
@@ -1200,6 +1209,10 @@ body {
       </svg>
     </button>
   </div>
+  <button class="nav-btn" id="btn-courses" onclick="goTo('courses')">
+    <span class="nav-icon">🛒</span>
+    <span class="nav-label">Courses</span>
+  </button>
   <button class="nav-btn" id="btn-catalogue" onclick="goTo('catalogue')">
     <span class="nav-icon">📖</span>
     <span class="nav-label">Recettes</span>
@@ -2140,13 +2153,25 @@ function goTo(name){
   const btn=document.getElementById('btn-'+name);
   if(btn) btn.classList.add('active');
   if(name==='planning') buildPlanning();
+  else if(name==='courses') buildCourses();
+}
+
+function buildCourses(){
+  const now = new Date(), cur = isoWeek(now);
+  if (planningWeek == null) planningWeek = cur;
+  const content = document.getElementById('courses-content');
+  if (!content) return;
+  content.innerHTML = renderShoppingList();
+  // Scroll en haut
+  const sc = document.getElementById('courses-scroll');
+  if (sc) sc.scrollTop = 0;
 }
 
 // ══════════════════════════════════════════════════════════════════════════
 // PLANNING — Courses / Année / Suggestions
 // ══════════════════════════════════════════════════════════════════════════
 
-let currentPlanningTab = 'courses';
+let currentPlanningTab = 'annee';
 let planningWeek = null;
 let suggestionsCache = {}; // { weekNum: [recetteId, ...] } pour stabiliser le shuffle
 
@@ -2165,12 +2190,18 @@ function buildPlanning(){
   if (loader) loader.style.display = 'none';
   const content = document.getElementById('planning-content');
   if (!content) return;
-  if (currentPlanningTab === 'courses') content.innerHTML = renderShoppingList();
-  else if (currentPlanningTab === 'annee') content.innerHTML = renderYearCalendar();
+  if (currentPlanningTab === 'annee') content.innerHTML = renderYearCalendar();
   else if (currentPlanningTab === 'suggest') content.innerHTML = renderSuggestions();
   // Scroll en haut au changement d'onglet
   const sc = document.getElementById('planning-scroll');
   if (sc) sc.scrollTop = 0;
+}
+
+// Helper : re-render dans l'écran actuellement actif (Planning ou Courses)
+function rerenderShopping(){
+  const cs = document.getElementById('screen-courses');
+  if (cs && cs.classList.contains('active')) buildCourses();
+  else buildPlanning();
 }
 
 function weekPickerHTML(weekVar){
@@ -2185,7 +2216,7 @@ function weekPickerHTML(weekVar){
 
 function planningWeekShift(delta){
   planningWeek = ww(planningWeek + delta);
-  buildPlanning();
+  rerenderShopping();
 }
 
 // ── Tab 1 : Liste de courses ──────────────────────────────────────────
@@ -2430,7 +2461,7 @@ let shoppingView = (typeof localStorage !== 'undefined' && localStorage.getItem(
 function setShoppingView(mode){
   shoppingView = mode;
   try { localStorage.setItem('shopping-view-mode', mode); } catch {}
-  buildPlanning();
+  rerenderShopping();
 }
 
 function renderShoppingList(){
@@ -2575,7 +2606,7 @@ function shoppingToggleAll(state){
   }
   if (state) saveShoppingChecked(w, allKeys);
   else saveShoppingChecked(w, new Set());
-  buildPlanning();
+  rerenderShopping();
 }
 
 // ── Tab 2 : Calendrier annuel ─────────────────────────────────────────
