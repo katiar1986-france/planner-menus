@@ -443,8 +443,45 @@ body {
   background: #E0E0E0; margin: 12px auto 0;
   flex-shrink: 0;
 }
-.sheet-photo-wrap { position: relative; margin-top: 12px; overflow: hidden; }
-.sheet-photo { width: 100%; height: 260px; object-fit: cover; }
+.sheet-photo-wrap { position: relative; margin-top: 12px; overflow: hidden; height: 260px; }
+.sheet-photo { width: 100%; height: 260px; object-fit: cover; display: block; }
+
+/* Carrousel multi-photos */
+.sheet-photo-carousel {
+  display: flex;
+  overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  width: 100%; height: 100%;
+}
+.sheet-photo-carousel::-webkit-scrollbar { display: none; }
+.sheet-photo-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  position: relative;
+  height: 100%;
+}
+.sheet-photo-slide .sheet-photo,
+.sheet-photo-slide .img-placeholder { height: 100%; }
+.sheet-photo-dots {
+  position: absolute;
+  bottom: 92px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 5px;
+  z-index: 4;
+  pointer-events: none;
+}
+.sheet-photo-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(255,255,255,0.45);
+  transition: background 0.2s, width 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.sheet-photo-dot.active {
+  background: white;
+  width: 18px;
+}
 .sheet-photo-overlay {
   position: absolute; inset: 0;
   background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, transparent 30%, transparent 45%, rgba(0,0,0,0.7) 100%);
@@ -646,6 +683,59 @@ body {
   color: white;
   border-color: var(--label);
 }
+/* Gestion des photos dans le formulaire */
+.form-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  gap: 8px;
+}
+.form-photo-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #F0F0F0;
+}
+.form-photo-thumb {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.form-photo-del {
+  position: absolute; top: 5px; right: 5px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(0,0,0,0.65);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white; font-size: 11px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  padding: 0; line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+.form-photo-del:active { transform: scale(0.88); }
+.form-photo-cover {
+  position: absolute; bottom: 4px; left: 4px;
+  padding: 2px 6px; border-radius: 6px;
+  font-size: 9px; font-weight: 800;
+  background: rgba(255,255,255,0.94);
+  color: var(--label);
+  text-transform: uppercase; letter-spacing: 0.04em;
+  pointer-events: none;
+}
+.form-photo-add {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  border: 2px dashed rgba(0,0,0,0.18);
+  background: #FAFAF6;
+  font-size: 26px; color: var(--label3); font-weight: 300;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-family: var(--f);
+  transition: background 0.15s, transform 0.12s;
+}
+.form-photo-add:active { transform: scale(0.95); background: #F0F0E8; }
+.form-photo-add.busy { opacity: 0.6; cursor: progress; }
+
 .form-chips-weeks {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
@@ -1173,23 +1263,40 @@ function openSheet(id){
   const r=all.find(x=>String(x.id)===String(id));
   if(!r){console.warn('Recette non trouvée:',id);return;}
   currentSheetId=id;
-  const url=getPhoto(r);
   const ts=typeStyle(r.type_plat);
   const rs=r.regime?regimeStyle(r.regime):null;
   const av=avisIcon(r.avis);
   const semLabel=(r.semaines||[]).join(' · ')||'—';
-  const photoMarkup=url
-    ? `<img class="sheet-photo" id="sheet-photo-img" src="${url}" loading="lazy">`
-    : `<div class="sheet-photo img-placeholder" id="sheet-photo-img"><span class="ph-emoji">${recipeEmoji(r)}</span></div>`;
+
+  // Liste des photos à afficher dans le carrousel.
+  // photos[] (multi-photos) > photo_url (legacy) > pack Unsplash > placeholder
+  let photoList = [];
+  if (Array.isArray(r.photos) && r.photos.length) photoList = r.photos.filter(p => p && p.trim());
+  else if (r.photo_url && r.photo_url.trim()) photoList = [r.photo_url];
+  if (!photoList.length) {
+    const packUrlFb = getPackPhoto(r);
+    if (packUrlFb) photoList = [packUrlFb];
+  }
+
+  const slidesHTML = photoList.length
+    ? photoList.map((u, i) => `<div class="sheet-photo-slide"><img class="sheet-photo" src="${u}" loading="${i===0?'eager':'lazy'}"></div>`).join('')
+    : `<div class="sheet-photo-slide"><div class="sheet-photo img-placeholder"><span class="ph-emoji">${recipeEmoji(r)}</span></div></div>`;
+
+  const dotsHTML = photoList.length > 1
+    ? `<div class="sheet-photo-dots" id="sheet-photo-dots">${photoList.map((_, i) => `<span class="sheet-photo-dot${i===0?' active':''}"></span>`).join('')}</div>`
+    : '';
 
   document.getElementById('sheet-body').innerHTML=`
     <div class="sheet-photo-wrap">
-      ${photoMarkup}
+      <div class="sheet-photo-carousel" id="sheet-photo-carousel">
+        ${slidesHTML}
+      </div>
       <div class="sheet-photo-overlay"></div>
+      ${dotsHTML}
       <button class="sheet-modify-btn" type="button" onclick="openRecipeForm('${r.id}')">
         <span>✏️</span><span>Modifier</span>
       </button>
-      <button class="sheet-photo-change" id="photo-edit-btn" type="button" aria-label="Modifier la photo">📷</button>
+      <button class="sheet-photo-change" id="photo-edit-btn" type="button" aria-label="Ajouter une photo">📷</button>
       <input type="file" id="photo-input" accept="image/*" hidden>
       <button class="sheet-close" onclick="closeSheet()" aria-label="Fermer">✕</button>
       <div class="sheet-photo-content">
@@ -1234,6 +1341,22 @@ function openSheet(id){
       await handlePhotoUpload(file, id, photoBtn);
     });
   }
+
+  // Bind carousel scroll → mise à jour des dots
+  bindCarouselDots();
+}
+
+function bindCarouselDots(){
+  const carousel = document.getElementById('sheet-photo-carousel');
+  const dotsWrap = document.getElementById('sheet-photo-dots');
+  if (!carousel || !dotsWrap) return;
+  const dots = [...dotsWrap.querySelectorAll('.sheet-photo-dot')];
+  if (!dots.length) return;
+  const update = () => {
+    const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  };
+  carousel.addEventListener('scroll', update, { passive: true });
 }
 
 async function handlePhotoUpload(file, recetteId, btn){
@@ -1242,27 +1365,22 @@ async function handlePhotoUpload(file, recetteId, btn){
   btn.disabled=true;
   btn.innerHTML='⏳';
   try{
-    const url=await uploadRecettePhoto(file, recetteId);
-    // Update local state
     const r=all.find(x=>String(x.id)===String(recetteId));
-    if(r) r.photo_url=url;
-    // Remplace l'élément photo : peut être <img> ou <div> placeholder selon avant/après
-    const wrap=document.querySelector('.sheet-photo-wrap');
-    if(wrap){
-      const old=wrap.querySelector('.sheet-photo');
-      if(old) old.remove();
-      wrap.insertAdjacentHTML('afterbegin', `<img class="sheet-photo" id="sheet-photo-img" src="${url}" loading="lazy">`);
+    const currentPhotos = (r && Array.isArray(r.photos)) ? r.photos.slice() : (r && r.photo_url ? [r.photo_url] : []);
+    if (currentPhotos.length >= 10) {
+      throw new Error('Maximum 10 photos par recette');
     }
-    // Rafraîchit les deux écrans
-    buildSemaines();
-    filterCat();
+    const url = await uploadAndAppendPhoto(file, recetteId, currentPhotos);
     btn.classList.remove('busy');
     btn.classList.add('ok');
     btn.innerHTML='✓';
+    // Re-render la fiche complète pour afficher le nouveau carrousel
+    openSheet(recetteId);
+    buildSemaines();
+    filterCat();
     setTimeout(()=>{
-      btn.classList.remove('ok');
-      btn.disabled=false;
-      btn.innerHTML='📷';
+      const b=document.getElementById('photo-edit-btn');
+      if(b){ b.classList.remove('ok'); b.innerHTML='📷'; b.disabled=false; }
     }, 1500);
   } catch(err){
     console.error('Upload photo:', err);
@@ -1277,41 +1395,135 @@ async function handlePhotoUpload(file, recetteId, btn){
   }
 }
 
-async function uploadRecettePhoto(file, recetteId){
+// Upload un fichier dans Storage avec un chemin unique, APPEND à photos[],
+// met à jour photo_url = photos[0] pour compat. Retourne l'URL ajoutée.
+// Upload pur : envoie le fichier dans Storage et retourne l'URL publique.
+// N'écrit PAS dans la table recettes — c'est l'appelant qui décide quand patcher.
+async function uploadPhotoOnly(file, recetteId){
   const rawExt=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
   const ext=['jpg','jpeg','png','webp','gif','avif'].includes(rawExt)?(rawExt==='jpeg'?'jpg':rawExt):'jpg';
-  const path=`${recetteId}.${ext}`;
-  const uploadRes=await fetch(`${SB}/storage/v1/object/recettes-photos/${path}`,{
-    method:'POST',
-    headers:{
-      'apikey':KEY,
-      'Authorization':`Bearer ${KEY}`,
-      'Content-Type':file.type||`image/${ext==='jpg'?'jpeg':ext}`,
-      'x-upsert':'true',
-      'Cache-Control':'3600'
+  const uniq = `${Date.now()}-${Math.random().toString(36).slice(2,9)}`;
+  const path = `${recetteId}/${uniq}.${ext}`;
+  const uploadRes = await fetch(`${SB}/storage/v1/object/recettes-photos/${path}`, {
+    method: 'POST',
+    headers: {
+      'apikey': KEY,
+      'Authorization': `Bearer ${KEY}`,
+      'Content-Type': file.type || `image/${ext==='jpg'?'jpeg':ext}`,
+      'x-upsert': 'true',
+      'Cache-Control': '3600'
     },
-    body:file
+    body: file
   });
   if(!uploadRes.ok){
-    const txt=await uploadRes.text().catch(()=>'');
+    const txt = await uploadRes.text().catch(()=>'');
     throw new Error(`Storage ${uploadRes.status}: ${txt}`);
   }
-  const publicUrl=`${SB}/storage/v1/object/public/recettes-photos/${path}?v=${Date.now()}`;
-  const patchRes=await fetch(`${SB}/rest/v1/recettes?id=eq.${recetteId}`,{
-    method:'PATCH',
-    headers:{
-      'apikey':KEY,
-      'Authorization':`Bearer ${KEY}`,
-      'Content-Type':'application/json',
-      'Prefer':'return=minimal'
+  return `${SB}/storage/v1/object/public/recettes-photos/${path}`;
+}
+
+// Upload + APPEND à photos[] + PATCH la recette. Met aussi à jour
+// photo_url = photos[0] pour compat. Utilisé par le bouton 📷 de la sheet.
+async function uploadAndAppendPhoto(file, recetteId, currentPhotos){
+  const publicUrl = await uploadPhotoOnly(file, recetteId);
+  const newPhotos = [...currentPhotos, publicUrl];
+  const payload = { photos: newPhotos, photo_url: newPhotos[0] };
+  const patchRes = await fetch(`${SB}/rest/v1/recettes?id=eq.${recetteId}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': KEY,
+      'Authorization': `Bearer ${KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
     },
-    body:JSON.stringify({photo_url:publicUrl})
+    body: JSON.stringify(payload)
   });
   if(!patchRes.ok){
-    const txt=await patchRes.text().catch(()=>'');
+    const txt = await patchRes.text().catch(()=>'');
     throw new Error(`DB ${patchRes.status}: ${txt}`);
   }
+  const updated = (await patchRes.json())[0];
+  const idx = all.findIndex(x => String(x.id) === String(recetteId));
+  if (idx >= 0 && updated) all[idx] = updated;
   return publicUrl;
+}
+
+// ── Gestion des photos dans le formulaire ──────────────────────────────
+function formPhotosHTML(r, isNew){
+  if (isNew) {
+    return `<div style="padding:14px;color:var(--label3);font-size:12px;text-align:center;background:#FAFAF6;border-radius:var(--radius-sm);border:1px dashed rgba(0,0,0,0.1)">
+      💡 Enregistre la recette d'abord, puis tu pourras ajouter des photos depuis la fiche
+    </div>`;
+  }
+  const photos = (Array.isArray(r.photos) && r.photos.length)
+    ? r.photos.filter(p => p && p.trim())
+    : (r.photo_url ? [r.photo_url] : []);
+  let html = `<div class="form-photos" id="form-photos">`;
+  photos.forEach((url, i) => {
+    html += `<div class="form-photo-item" data-url="${escAttr(url)}">
+      <img class="form-photo-thumb" src="${url}" loading="lazy">
+      <button type="button" class="form-photo-del" aria-label="Supprimer" onclick="formRemovePhoto(this)">✕</button>
+      ${i === 0 ? `<span class="form-photo-cover">Couverture</span>` : ''}
+    </div>`;
+  });
+  html += `<button type="button" class="form-photo-add" id="form-photo-add" onclick="formAddPhoto(this)" aria-label="Ajouter une photo">+</button>`;
+  html += `</div>`;
+  return html;
+}
+
+function formAddPhoto(btn){
+  const input = document.getElementById('form-photo-input');
+  if (!input || !currentSheetId) return;
+  input.value = '';
+  input.onchange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    input.value = '';
+    const items = [...document.querySelectorAll('.form-photo-item')];
+    if (items.length >= 10) { alert('Maximum 10 photos par recette'); return; }
+    btn.classList.add('busy');
+    btn.disabled = true;
+    btn.textContent = '⏳';
+    try {
+      const url = await uploadPhotoOnly(file, currentSheetId);
+      const wrap = document.getElementById('form-photos');
+      if (wrap) {
+        const isFirst = items.length === 0;
+        const newItem = document.createElement('div');
+        newItem.className = 'form-photo-item';
+        newItem.dataset.url = url;
+        newItem.innerHTML =
+          `<img class="form-photo-thumb" src="${url}" loading="lazy">` +
+          `<button type="button" class="form-photo-del" aria-label="Supprimer" onclick="formRemovePhoto(this)">✕</button>` +
+          (isFirst ? `<span class="form-photo-cover">Couverture</span>` : '');
+        wrap.insertBefore(newItem, btn);
+      }
+    } catch (err) {
+      console.error('Form add photo:', err);
+      alert('Erreur upload : ' + err.message);
+    } finally {
+      btn.classList.remove('busy');
+      btn.disabled = false;
+      btn.textContent = '+';
+    }
+  };
+  input.click();
+}
+
+function formRemovePhoto(btn){
+  const item = btn.closest('.form-photo-item');
+  if (!item) return;
+  item.remove();
+  // Re-marquer la 1re comme couverture
+  const items = [...document.querySelectorAll('.form-photo-item')];
+  items.forEach((it, i) => {
+    const cover = it.querySelector('.form-photo-cover');
+    if (i === 0 && !cover) {
+      it.insertAdjacentHTML('beforeend', `<span class="form-photo-cover">Couverture</span>`);
+    } else if (i !== 0 && cover) {
+      cover.remove();
+    }
+  });
 }
 
 function closeSheet(){
@@ -1484,6 +1696,12 @@ function buildRecipeFormHTML(r){
     </div>
     <div class="form-body">
       <div class="form-section">
+        <label class="form-label">Photos <span class="form-hint">jusqu'à 10, la première est l'image de couverture</span></label>
+        ${formPhotosHTML(d, isNew)}
+        <input type="file" id="form-photo-input" accept="image/*" hidden>
+      </div>
+
+      <div class="form-section">
         <label class="form-label">Titre</label>
         <input class="form-input" type="text" name="titre" placeholder="Ex. Quiche aux poireaux" value="${escAttr(d.titre)}">
       </div>
@@ -1567,6 +1785,7 @@ function collectFormData(){
     if (!el) return '';
     return (el.value || '').trim();
   };
+  const photos = [...document.querySelectorAll('.form-photo-item')].map(it => it.dataset.url).filter(Boolean);
   return {
     titre: text('input[name="titre"]'),
     type_plat: chipsVals('type_plat'),
@@ -1577,6 +1796,8 @@ function collectFormData(){
     ingredients: (get('textarea[name="ingredients"]') || {}).value || null,
     recette_ecrite: (get('textarea[name="recette_ecrite"]') || {}).value || null,
     semaines: chipsVals('semaines'),
+    photos: photos,
+    photo_url: photos[0] || null,
   };
 }
 
