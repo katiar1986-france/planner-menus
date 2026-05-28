@@ -4,9 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Menus">
-<title>Menus de Katia</title>
+<meta name="apple-mobile-web-app-title" content="OnQuoi?">
+<meta name="theme-color" content="#FF6B2E">
+<title>OnMangeQuoiMaman?</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -474,6 +482,20 @@ body {
   flex: 1; text-align: center;
   font-size: 16px; font-weight: 900; color: var(--label);
   letter-spacing: -0.2px;
+}
+.planning-week-picker-share {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--orange); border: none; cursor: pointer;
+  color: white; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-left: 6px;
+  box-shadow: 0 2px 8px rgba(255,107,46,0.3);
+  transition: transform 0.12s, opacity 0.12s, box-shadow 0.12s;
+}
+.planning-week-picker-share:active {
+  transform: scale(0.9);
+  opacity: 0.85;
+  box-shadow: 0 1px 4px rgba(255,107,46,0.25);
 }
 
 /* ── Liste de courses ── */
@@ -1205,6 +1227,31 @@ body {
   text-align: center;
   font-style: italic;
 }
+
+/* Bouton suppression de recette (mode édition uniquement) */
+.form-delete-row {
+  padding: 28px 0 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--sep);
+}
+.form-delete-btn {
+  width: 100%;
+  background: none;
+  border: 1.5px solid rgba(239,68,68,0.3);
+  color: #DC2626;
+  font-family: var(--f); font-size: 13px; font-weight: 800;
+  padding: 13px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background 0.15s, transform 0.12s, border-color 0.15s;
+}
+.form-delete-btn:active {
+  transform: scale(0.98);
+  background: rgba(239,68,68,0.08);
+  border-color: rgba(239,68,68,0.5);
+}
+.form-delete-btn.busy { opacity: 0.6; cursor: progress; }
 
 .form-chips-weeks {
   display: grid;
@@ -2343,13 +2390,15 @@ function rerenderShopping(){
   else buildPlanning();
 }
 
-function weekPickerHTML(weekVar){
+function weekPickerHTML(weekVar, options){
+  const opts = options || {};
   const w = weekVar;
   const label = WL[w] || `Semaine ${w}`;
   return `<div class="planning-week-picker">
     <button class="planning-week-picker-arrow" onclick="planningWeekShift(-1)" aria-label="Semaine précédente">←</button>
     <div class="planning-week-picker-current">${label}</div>
     <button class="planning-week-picker-arrow" onclick="planningWeekShift(1)" aria-label="Semaine suivante">→</button>
+    ${opts.showShare ? `<button class="planning-week-picker-share" onclick="shareShoppingList()" aria-label="Partager la liste">📤</button>` : ''}
   </div>`;
 }
 
@@ -2606,7 +2655,7 @@ function setShoppingView(mode){
 function renderShoppingList(){
   const w = planningWeek;
   const items = (all || []).filter(r => Array.isArray(r.semaines) && r.semaines.some(s => WM[s] === w));
-  let html = weekPickerHTML(w);
+  let html = weekPickerHTML(w, { showShare: true });
   html += `<div class="shopping-view-toggle">
     <button class="shopping-toggle-btn${shoppingView==='agg'?' active':''}" onclick="setShoppingView('agg')">📑 Agrégé</button>
     <button class="shopping-toggle-btn${shoppingView==='recipe'?' active':''}" onclick="setShoppingView('recipe')">📂 Par recette</button>
@@ -2731,6 +2780,81 @@ function updateShoppingMetaStat(){
   for (const r of items) total += parseIngredients(r.ingredients).length;
   const stat = document.querySelector('.shopping-meta-stat');
   if (stat) stat.textContent = `${items.length} recettes · ${total} ingrédients · ${checked.size} ✓`;
+}
+
+// Génère le texte plein de la liste de courses pour partage
+function buildShoppingExportText(week){
+  const items = (all || []).filter(r => Array.isArray(r.semaines) && r.semaines.some(s => WM[s] === week));
+  if (!items.length) return '';
+  const entries = [];
+  for (const r of items) {
+    for (const line of parseIngredients(r.ingredients)) {
+      entries.push({ line, recetteTitre: r.titre, recetteId: r.id });
+    }
+  }
+  if (!entries.length) return '';
+  const aggregated = aggregateIngredients(entries);
+  const label = WL[week] || `Semaine ${week}`;
+  const s = saison(week);
+  const sm = SM[s];
+  let txt = `🛒 Liste de courses\n${label}  ·  ${sm.emoji} ${s}\n`;
+  try {
+    const range = weekDateRange(new Date().getFullYear(), week);
+    txt += `${fmtDateShort(range.monday)} → ${fmtDateShort(range.sunday)}\n`;
+  } catch {}
+  txt += `\n${items.length} recette${items.length>1?'s':''} · ${aggregated.length} ingrédient${aggregated.length>1?'s':''}\n\n`;
+  for (const agg of aggregated) {
+    const qty = agg.quantityText ? `  —  ${agg.quantityText}` : '';
+    txt += `• ${agg.displayName}${qty}\n`;
+  }
+  txt += `\n— Généré par OnMangeQuoiMaman?`;
+  return txt;
+}
+
+async function shareShoppingList(){
+  const w = planningWeek;
+  const txt = buildShoppingExportText(w);
+  if (!txt) {
+    alert('Aucun ingrédient à partager pour cette semaine.');
+    return;
+  }
+  const label = WL[w] || `Semaine ${w}`;
+  const title = `Liste de courses — ${label}`;
+  // Try Web Share API first
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, text: txt });
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+      console.error('Share:', e);
+      // fallthrough to clipboard
+    }
+  }
+  // Fallback clipboard
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(txt);
+      alert('Liste copiée dans le presse-papier ✓\nColle-la où tu veux (Notes, Messages, etc.)');
+      return;
+    } catch (e) {
+      console.error('Clipboard:', e);
+    }
+  }
+  // Last-resort fallback
+  const ta = document.createElement('textarea');
+  ta.value = txt;
+  ta.style.position = 'fixed';
+  ta.style.top = '0';
+  ta.style.left = '0';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch {}
+  ta.remove();
+  if (ok) alert('Liste copiée ✓');
+  else alert('Copie impossible. Voici le texte :\n\n' + txt);
 }
 
 function shoppingToggleAll(state){
@@ -3242,6 +3366,43 @@ function openAddRecette(){
   openRecipeForm(null);
 }
 
+async function deleteRecipe(recetteId){
+  const r = (all || []).find(x => String(x.id) === String(recetteId));
+  if (!r) return;
+  if (!confirm(`Supprimer définitivement "${r.titre}" ?\n\nCette action est irréversible — la recette et toutes ses semaines planifiées seront perdues.`)) return;
+  const btn = document.getElementById('form-delete-btn');
+  if (btn) {
+    btn.classList.add('busy');
+    btn.disabled = true;
+    btn.innerHTML = 'Suppression…';
+  }
+  try {
+    const res = await fetch(`${SB}/rest/v1/recettes?id=eq.${recetteId}`, {
+      method: 'DELETE',
+      headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}` }
+    });
+    if (!res.ok) throw new Error(`${res.status}: ${await res.text().catch(() => '')}`);
+    const idx = all.findIndex(x => String(x.id) === String(recetteId));
+    if (idx >= 0) all.splice(idx, 1);
+    // Fermeture nette : on vide la pile pour éviter de retomber sur une frame
+    // qui pointerait vers une recette qui n'existe plus
+    sheetStack = [];
+    sheetWeek = null;
+    currentSheetId = null;
+    closeSheet();
+    buildSemaines();
+    filterCat();
+  } catch (e) {
+    console.error('Delete:', e);
+    if (btn) {
+      btn.classList.remove('busy');
+      btn.disabled = false;
+      btn.innerHTML = '🗑️&nbsp;&nbsp;Supprimer la recette';
+    }
+    alert('Erreur : ' + e.message);
+  }
+}
+
 // ══════════════════════════════════════════════════════════════════════════
 // FORMULAIRE RECETTE (ajout / modification)
 // ══════════════════════════════════════════════════════════════════════════
@@ -3382,6 +3543,12 @@ function buildRecipeFormHTML(r){
         <label class="form-label">Semaines planifiées <span class="form-hint">plusieurs possibles</span></label>
         ${weeksFormHTML(d.semaines)}
       </div>
+
+      ${isNew ? '' : `<div class="form-delete-row">
+        <button type="button" class="form-delete-btn" id="form-delete-btn" onclick="deleteRecipe('${titreId}')">
+          🗑️&nbsp;&nbsp;Supprimer la recette
+        </button>
+      </div>`}
     </div>
     <div class="sheet-pb"></div>
   `;
