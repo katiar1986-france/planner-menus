@@ -701,18 +701,31 @@ body {
   object-fit: cover;
   display: block;
 }
-.form-photo-del {
-  position: absolute; top: 5px; right: 5px;
-  width: 22px; height: 22px; border-radius: 50%;
-  background: rgba(0,0,0,0.65);
-  border: 1px solid rgba(255,255,255,0.3);
-  color: white; font-size: 11px; font-weight: 800;
+.form-photo-del, .form-photo-star {
+  position: absolute;
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.35);
+  color: white; font-size: 12px; font-weight: 800;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   padding: 0; line-height: 1;
   -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s, background 0.15s;
 }
-.form-photo-del:active { transform: scale(0.88); }
+.form-photo-del {
+  top: 5px; right: 5px;
+  background: rgba(0,0,0,0.65);
+}
+.form-photo-star {
+  top: 5px; left: 5px;
+  background: rgba(0,0,0,0.55);
+  font-size: 13px;
+}
+.form-photo-star.active {
+  background: #F59E0B;
+  border-color: #F59E0B;
+}
+.form-photo-del:active, .form-photo-star:active { transform: scale(0.85); }
 .form-photo-cover {
   position: absolute; bottom: 4px; left: 4px;
   padding: 2px 6px; border-radius: 6px;
@@ -735,6 +748,31 @@ body {
 }
 .form-photo-add:active { transform: scale(0.95); background: #F0F0E8; }
 .form-photo-add.busy { opacity: 0.6; cursor: progress; }
+
+/* Drag & drop des photos */
+.form-photo-item {
+  touch-action: manipulation;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.form-photo-item.dragging {
+  opacity: 0.95;
+  transform: scale(1.08);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.28);
+  z-index: 100;
+  transition: none;
+  cursor: grabbing;
+}
+.form-photo-item.drag-ghost {
+  opacity: 0.25;
+  filter: grayscale(1);
+}
+.form-photos-hint {
+  font-size: 10px; font-weight: 600;
+  color: var(--label3);
+  margin-top: 8px;
+  text-align: center;
+  font-style: italic;
+}
 
 .form-chips-weeks {
   display: grid;
@@ -1061,6 +1099,7 @@ function goToWeek(w){
 async function init(){
   loadDone();
   bindSheetSwipe();
+  bindPhotoDragOnce();
   const res=await fetch(`${SB}/rest/v1/recettes?select=*&limit=300`,{headers:{'apikey':KEY,'Authorization':`Bearer ${KEY}`}});
   all=await res.json();
   buildSemaines();
@@ -1462,12 +1501,16 @@ function formPhotosHTML(r, isNew){
   photos.forEach((url, i) => {
     html += `<div class="form-photo-item" data-url="${escAttr(url)}">
       <img class="form-photo-thumb" src="${url}" loading="lazy">
+      <button type="button" class="form-photo-star${i===0?' active':''}" aria-label="${i===0?'Photo de couverture':'Définir comme couverture'}" title="${i===0?'Photo de couverture':'Définir comme couverture'}" onclick="formSetCover(this)">★</button>
       <button type="button" class="form-photo-del" aria-label="Supprimer" onclick="formRemovePhoto(this)">✕</button>
       ${i === 0 ? `<span class="form-photo-cover">Couverture</span>` : ''}
     </div>`;
   });
   html += `<button type="button" class="form-photo-add" id="form-photo-add" onclick="formAddPhoto(this)" aria-label="Ajouter une photo">+</button>`;
   html += `</div>`;
+  if (photos.length > 1) {
+    html += `<div class="form-photos-hint">Appui long sur une photo pour la réorganiser</div>`;
+  }
   return html;
 }
 
@@ -1514,16 +1557,139 @@ function formRemovePhoto(btn){
   const item = btn.closest('.form-photo-item');
   if (!item) return;
   item.remove();
-  // Re-marquer la 1re comme couverture
+  refreshPhotoBadges();
+}
+
+function formSetCover(btn){
+  const item = btn.closest('.form-photo-item');
+  if (!item) return;
+  const wrap = item.parentNode;
+  const firstItem = wrap.querySelector('.form-photo-item');
+  if (firstItem && firstItem !== item) {
+    wrap.insertBefore(item, firstItem);
+    refreshPhotoBadges();
+  }
+}
+
+// Met à jour le badge "Couverture" et le bouton ★ actif selon l'ordre actuel
+function refreshPhotoBadges(){
   const items = [...document.querySelectorAll('.form-photo-item')];
   items.forEach((it, i) => {
-    const cover = it.querySelector('.form-photo-cover');
-    if (i === 0 && !cover) {
+    const isCover = i === 0;
+    const badge = it.querySelector('.form-photo-cover');
+    if (isCover && !badge) {
       it.insertAdjacentHTML('beforeend', `<span class="form-photo-cover">Couverture</span>`);
-    } else if (i !== 0 && cover) {
-      cover.remove();
+    } else if (!isCover && badge) {
+      badge.remove();
+    }
+    const star = it.querySelector('.form-photo-star');
+    if (star) {
+      star.classList.toggle('active', isCover);
+      star.setAttribute('aria-label', isCover ? 'Photo de couverture' : 'Définir comme couverture');
+      star.title = isCover ? 'Photo de couverture' : 'Définir comme couverture';
     }
   });
+}
+
+// ── Drag & drop des photos via touch (appui long) ──────────────────────
+let photoDragState = null;
+const PHOTO_DRAG_HOLD_MS = 350;
+const PHOTO_DRAG_CANCEL_PX = 10;
+
+function bindPhotoDragOnce(){
+  if (window._photoDragBound) return;
+  window._photoDragBound = true;
+  document.addEventListener('touchstart', onPhotoTouchStart, { passive: true });
+  document.addEventListener('touchmove', onPhotoTouchMove, { passive: false });
+  document.addEventListener('touchend', onPhotoTouchEnd, { passive: true });
+  document.addEventListener('touchcancel', onPhotoTouchEnd, { passive: true });
+}
+
+function onPhotoTouchStart(e){
+  // Ne s'active que si on touche une form-photo-item (et pas un bouton dedans)
+  const item = e.target.closest('.form-photo-item');
+  if (!item) return;
+  if (e.target.closest('button')) return;
+  if (!item.parentNode || item.parentNode.id !== 'form-photos') return;
+  const touch = e.touches[0];
+  photoDragState = {
+    item,
+    startX: touch.clientX,
+    startY: touch.clientY,
+    dragging: false,
+    holdTimer: setTimeout(() => {
+      if (!photoDragState) return;
+      startPhotoDrag(touch);
+    }, PHOTO_DRAG_HOLD_MS),
+  };
+}
+
+function startPhotoDrag(touch){
+  const item = photoDragState.item;
+  const rect = item.getBoundingClientRect();
+  photoDragState.offsetX = touch.clientX - rect.left;
+  photoDragState.offsetY = touch.clientY - rect.top;
+  photoDragState.w = rect.width;
+  photoDragState.h = rect.height;
+  photoDragState.dragging = true;
+  item.classList.add('dragging');
+  item.style.position = 'fixed';
+  item.style.left = (touch.clientX - photoDragState.offsetX) + 'px';
+  item.style.top = (touch.clientY - photoDragState.offsetY) + 'px';
+  item.style.width = rect.width + 'px';
+  item.style.height = rect.height + 'px';
+  item.style.pointerEvents = 'none';
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch {}
+}
+
+function onPhotoTouchMove(e){
+  if (!photoDragState) return;
+  const touch = e.touches[0];
+  if (!photoDragState.dragging) {
+    // Annule l'appui long si le doigt bouge trop avant déclenchement
+    const dx = touch.clientX - photoDragState.startX;
+    const dy = touch.clientY - photoDragState.startY;
+    if (Math.abs(dx) > PHOTO_DRAG_CANCEL_PX || Math.abs(dy) > PHOTO_DRAG_CANCEL_PX) {
+      clearTimeout(photoDragState.holdTimer);
+      photoDragState = null;
+    }
+    return;
+  }
+  // Drag actif : on bloque le scroll
+  e.preventDefault();
+  e.stopPropagation();
+  const item = photoDragState.item;
+  item.style.left = (touch.clientX - photoDragState.offsetX) + 'px';
+  item.style.top = (touch.clientY - photoDragState.offsetY) + 'px';
+  // Trouver la cible sous le doigt
+  const under = document.elementFromPoint(touch.clientX, touch.clientY);
+  const target = under && under.closest('.form-photo-item');
+  if (target && target !== item && target.parentNode === item.parentNode) {
+    const tRect = target.getBoundingClientRect();
+    const insertBefore = touch.clientX < tRect.left + tRect.width/2;
+    if (insertBefore) {
+      target.parentNode.insertBefore(item, target);
+    } else {
+      target.parentNode.insertBefore(item, target.nextSibling);
+    }
+  }
+}
+
+function onPhotoTouchEnd(){
+  if (!photoDragState) return;
+  clearTimeout(photoDragState.holdTimer);
+  if (photoDragState.dragging) {
+    const item = photoDragState.item;
+    item.classList.remove('dragging');
+    item.style.position = '';
+    item.style.left = '';
+    item.style.top = '';
+    item.style.width = '';
+    item.style.height = '';
+    item.style.pointerEvents = '';
+    refreshPhotoBadges();
+  }
+  photoDragState = null;
 }
 
 function closeSheet(){
