@@ -2149,44 +2149,70 @@ function saveShoppingChecked(week, set){
 
 function parseIngredients(text){
   if (!text || typeof text !== 'string') return [];
-  // Split par lignes, nettoyer les puces / tirets
   return text.split(/\r?\n/).map(line => {
     return line.replace(/^[\s•\-\*]+/, '').trim();
-  }).filter(line => line.length > 0 && line.length < 200);
+  }).filter(line => {
+    if (line.length === 0 || line.length >= 200) return false;
+    // Filtre les titres de section qui ne sont pas des ingrédients
+    if (/^pour\s+(la|le|les|l['']|une|un|mon|ma|mes)\b/i.test(line)) return false;
+    if (/^ingr[ée]dients?\s*:?\s*$/i.test(line)) return false;
+    if (/^(pr[ée]paration|[ée]tapes?|instructions?|recette|d[ée]roul[ée]|mat[ée]riel)\s*:?\s*$/i.test(line)) return false;
+    // Lignes qui se finissent par ":" sont souvent des titres de section
+    if (/[a-zà-ÿ]\s*:\s*$/i.test(line) && line.length < 40) return false;
+    return true;
+  });
+}
+
+// Adjectifs de préparation (participes passés) à retirer du nom : râpé,
+// haché, émincé, coupé en cubes/dés, fondu, cuit, écrasé, etc.
+function stripPrepAdjectives(name){
+  if (!name) return name;
+  const adj = /\s+(?:r[âa]pp?[ée]e?s?|hach[ée]e?s?|[ée]minc[ée]e?s?|d[ée]?coup[ée]e?s?|fondu[se]?s?|cuit[se]?s?|[ée]cras[ée]e?s?|m[ée]lang[ée]e?s?|marin[ée]e?s?|frit[se]?s?|grill[ée]e?s?|r[ôo]ti[se]?s?|pel[ée]e?s?|tranch[ée]e?s?|effeuill[ée]e?s?|en\s+(?:cubes?|d[ée]s|lamelles?|rondelles?|tranches?|morceaux|julienne|brunoise))\b/gi;
+  return name.replace(adj, '').replace(/\s+/g, ' ').trim();
 }
 
 // Tente d'extraire (qty, unit, nom) d'une ligne d'ingrédient.
 // Exemples : "200g pâtes", "2 oeufs", "1 c.à.s d'huile", "500 g de farine"
-const SHOPPING_UNITS = new Set([
-  'g','kg','mg','ml','cl','dl','l',
-  'cs','cc','c.s','c.c','c.s.','c.c.',
-  'cuillère','cuillere','cuillères','cuilleres',
-  'cuillerée','cuilleree','cuillerées','cuillerees',
-  'tasse','tasses','verre','verres','bol','bols',
-  'gousse','gousses','tranche','tranches','feuille','feuilles',
-  'brin','brins','botte','bottes','paquet','paquets','sachet','sachets',
-  'boîte','boite','boîtes','boites','pot','pots','pincée','pincee','pincées','pincees',
-  'gramme','grammes','litre','litres',
-]);
-function normalizeUnit(u){
-  const m = (u || '').toLowerCase()
-    .replace(/\./g, '')
-    .replace(/[éè]/g, 'e')
-    .replace(/s$/,'');
-  const aliases = {
-    'gramme':'g','grammes':'g','kilogramme':'kg','kilo':'kg',
-    'litre':'l','millilitre':'ml','centilitre':'cl','decilitre':'dl',
-    'cuillere':'c.s','cuilleree':'c.s','cuilleres':'c.s',
-    'cs':'c.s','cc':'c.c',
-    'pincee':'pincée',
+function detectUnit(raw){
+  if (!raw) return null;
+  const lower = raw.toLowerCase();
+  const noSp = lower.replace(/[.\s]+/g, '');
+  // Abréviations de cuillère
+  if (noSp === 'cas' || noSp === 'càs' || noSp === 'cs') return 'c.s';
+  if (noSp === 'cac' || noSp === 'càc' || noSp === 'cc') return 'c.c';
+  // Unités métriques (avec ou sans pluriel)
+  const map = {
+    'g':'g','gramme':'g','grammes':'g',
+    'kg':'kg','kilo':'kg','kilos':'kg','kilogramme':'kg','kilogrammes':'kg',
+    'mg':'mg','milligramme':'mg','milligrammes':'mg',
+    'l':'l','litre':'l','litres':'l',
+    'ml':'ml','millilitre':'ml','millilitres':'ml',
+    'cl':'cl','centilitre':'cl','centilitres':'cl',
+    'dl':'dl','decilitre':'dl','decilitres':'dl','décilitre':'dl','décilitres':'dl',
   };
-  return aliases[m] || m;
+  if (map[lower]) return map[lower];
+  // Mots usuels (par préfixe pour gérer pluriels)
+  if (/^cuiller/i.test(raw)) return 'c.s';   // défaut, ajusté plus tard si "à café"
+  if (/^pinc/i.test(raw))    return 'pincée';
+  if (/^gousse/i.test(raw))  return 'gousse';
+  if (/^tranche/i.test(raw)) return 'tranche';
+  if (/^feuille/i.test(raw)) return 'feuille';
+  if (/^brin/i.test(raw))    return 'brin';
+  if (/^botte/i.test(raw))   return 'botte';
+  if (/^paquet/i.test(raw))  return 'paquet';
+  if (/^sachet/i.test(raw))  return 'sachet';
+  if (/^bo[îi]te/i.test(raw)) return 'boîte';
+  if (/^pot/i.test(raw))     return 'pot';
+  if (/^tasse/i.test(raw))   return 'tasse';
+  if (/^verre/i.test(raw))   return 'verre';
+  if (/^bol/i.test(raw))     return 'bol';
+  return null;
 }
 function parseIngredientLine(line){
   line = (line || '').replace(/^[\s•\-\*]+/, '').trim();
-  // Pattern : nombre (entier, décimal ou fraction) + optional unité + optional "de/d'" + nom
+  // Pattern : nombre + optional token unité + optional reste
   const m = line.match(/^(\d+(?:[.,]\d+)?(?:\s*\/\s*\d+(?:[.,]\d+)?)?)\s*([a-zà-ÿA-ZÀ-Ÿ\.]+)?\s+(.+)$/);
-  if (!m) return { qty: null, unit: '', name: line, raw: line };
+  if (!m) return { qty: null, unit: '', name: stripPrepAdjectives(line), raw: line };
   let q;
   if (m[1].includes('/')) {
     const [a, b] = m[1].split('/').map(s => parseFloat(s.replace(',', '.')));
@@ -2194,16 +2220,26 @@ function parseIngredientLine(line){
   } else {
     q = parseFloat(m[1].replace(',', '.'));
   }
-  const maybeUnit = (m[2] || '').toLowerCase().replace(/\./g, '').replace(/[éè]/g, 'e').replace(/s$/,'');
   let unit = '', rest = m[3].trim();
-  if (m[2] && SHOPPING_UNITS.has(maybeUnit) || SHOPPING_UNITS.has((m[2]||'').toLowerCase().replace(/\./g,''))) {
-    unit = normalizeUnit(m[2]);
+  const detected = m[2] ? detectUnit(m[2]) : null;
+  if (detected) {
+    unit = detected;
+    // Si "cuillère" : chercher "à soupe" ou "à café" dans la suite
+    if (/^cuiller/i.test(m[2])) {
+      const after = rest.match(/^à\s+(soupe|caf[éeè])\b\s*/i);
+      if (after) {
+        unit = after[1].toLowerCase().startsWith('caf') ? 'c.c' : 'c.s';
+        rest = rest.slice(after[0].length).trim();
+      }
+    }
   } else if (m[2]) {
-    // L'unité supposée n'est pas connue : on la remet dans le nom
+    // Pas une unité connue : on remet le mot dans le nom
     rest = m[2] + ' ' + rest;
   }
   // Strip leading article ("de", "d'", "des", etc.)
   rest = rest.replace(/^d['']\s*/i, '').replace(/^(de|du|des|la|le|les)\s+/i, '').trim();
+  // Nettoie les adjectifs de préparation ("râpées", "hachées", etc.)
+  rest = stripPrepAdjectives(rest);
   return { qty: q, unit, name: rest, raw: line };
 }
 function normalizeIngredientName(name){
@@ -2219,6 +2255,20 @@ function formatQty(q){
   if (q == null) return '';
   if (Number.isInteger(q)) return String(q);
   return q.toFixed(1).replace('.', ',').replace(/,0$/, '');
+}
+function formatQtyUnit(q, unit){
+  const n = formatQty(q);
+  if (!unit) return n;
+  if (['g','kg','mg','ml','cl','dl','l'].includes(unit)) return n + ' ' + unit;
+  if (unit === 'c.s') return n + ' c. à soupe';
+  if (unit === 'c.c') return n + ' c. à café';
+  const plurals = {
+    'pincée':'pincées','gousse':'gousses','tranche':'tranches','feuille':'feuilles',
+    'brin':'brins','botte':'bottes','paquet':'paquets','sachet':'sachets',
+    'boîte':'boîtes','pot':'pots','tasse':'tasses','verre':'verres','bol':'bols',
+  };
+  if (q > 1 && plurals[unit]) return n + ' ' + plurals[unit];
+  return n + ' ' + unit;
 }
 function aggregateIngredients(entries){
   // entries: [{ line, recetteTitre, recetteId }]
@@ -2241,7 +2291,7 @@ function aggregateIngredients(entries){
   const out = [];
   for (const g of groups.values()) {
     const parts = [];
-    for (const [u, q] of g.byUnit) parts.push(formatQty(q) + (u ? (u === 'c.s' || u === 'c.c' ? ' ' + u : (u.length <= 3 ? u : ' ' + u)) : ''));
+    for (const [u, q] of g.byUnit) parts.push(formatQtyUnit(q, u));
     if (g.unparsedCount > 0 && parts.length === 0) parts.push(g.unparsedCount + ' fois');
     else if (g.unparsedCount > 0) parts.push('+ ' + g.unparsedCount + ' sans qté');
     out.push({
@@ -2339,7 +2389,6 @@ function renderShoppingAggView(aggregated, checked){
         <span class="shopping-item-name">${escHtml(agg.displayName)}</span>
         ${agg.quantityText ? `<span class="shopping-item-qty">${escHtml(agg.quantityText)}</span>` : ''}
       </div>
-      ${agg.count > 1 ? `<span class="shopping-count-pill">${agg.count}×</span>` : ''}
     </div>`;
   });
   html += `</div></div>`;
