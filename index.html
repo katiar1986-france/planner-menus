@@ -1557,14 +1557,22 @@ body {
   cursor: pointer;
   transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
+  display: inline-flex; align-items: center; gap: 5px;
 }
+.form-chip > svg { flex-shrink: 0; }
 .form-chip:active { transform: scale(0.94); }
+/* Fallback selected (sans inline style) — orange par défaut.
+   Pour les kinds saison/type/régime/avis, l'inline style écrase ces
+   propriétés avec la couleur thématique. */
 .form-chip.selected {
   background: var(--orange);
   color: white;
   border-color: var(--orange);
   box-shadow: 0 2px 8px rgba(255,107,46,0.30);
 }
+/* L'icône d'un chip sélectionné suit la couleur (currentColor) ;
+   pour heart/thumbUp on remplit aussi le path pour plus de présence. */
+.form-chip.selected > svg { color: inherit; }
 /* Gestion des photos dans le formulaire */
 .form-photos {
   display: grid;
@@ -2120,15 +2128,17 @@ function regimeStyle(r){
   };
   return m[r] || {bg:'#8C9690', c:'#FFFFFF'};
 }
-// Source unique de vérité pour les 3 avis. Tous les rendus (badge rond,
-// pill allongée, etc.) se construisent à partir de avisInfo().
+// Source unique de vérité pour les 4 avis. Tous les rendus (badge rond,
+// pill allongée, chip formulaire) se construisent à partir de avisInfo().
 function avisInfo(a){
   if (a === '❤️ Coup de coeur')
-    return { iconName:'heart',          label:'Coup de cœur', bg:'#D6403B', color:'#FFFFFF',         cls:'avis-coeur'   };
+    return { iconName:'heart',          label:'Coup de cœur',  bg:'#D6403B', color:'#FFFFFF',         cls:'avis-coeur'   };
   if (a === '✅ Testé et approuvé')
-    return { iconName:'thumbUp',        label:'Testé',        bg:'#2E7BB8', color:'#FFFFFF',         cls:'avis-approuve'};
+    return { iconName:'thumbUp',        label:'Testé',         bg:'#2E7BB8', color:'#FFFFFF',         cls:'avis-approuve'};
   if (a === '🤔 Ca passe toujours')
-    return { iconName:'questionCircle', label:'Mitigé',       bg:'#F2BC1A', color:'#1F3D33',         cls:'avis-mitige'  };
+    return { iconName:'questionCircle', label:'Mitigé',        bg:'#F2BC1A', color:'#1F3D33',         cls:'avis-mitige'  };
+  if (a === '🤢 A remplacer')
+    return { iconName:'faceFrown',      label:'À remplacer',   bg:'#8C9690', color:'#FFFFFF',         cls:'avis-rejet'   };
   return null;
 }
 // Badge rond 26-28px (vu sur cards de recette).
@@ -4055,12 +4065,16 @@ const FORM_TYPES = [
   'Goûter',
 ];
 const FORM_REGIMES = ['Végé', 'Vegan', 'Poisson', 'Viande', 'Flexi'];
+// Saisons : value = clé DB (sans emoji), icône et couleur viennent
+// du mapping SM via le rendu chipsHTML(kind:'saison').
 const FORM_SAISONS = [
-  { value: 'Hiver',     label: '❄️ Hiver' },
-  { value: 'Printemps', label: '🌷 Printemps' },
-  { value: 'Été',       label: '☀️ Été' },
-  { value: 'Automne',   label: '🍁 Automne' },
+  { value: 'Hiver',     label: 'Hiver'     },
+  { value: 'Printemps', label: 'Printemps' },
+  { value: 'Été',       label: 'Été'       },
+  { value: 'Automne',   label: 'Automne'   },
 ];
+// Avis : on garde la valeur historique (avec emoji intégré) car
+// c'est ce qui est stocké en DB. Affichage propre via avisInfo().
 const FORM_AVIS = [
   '❤️ Coup de coeur',
   '✅ Testé et approuvé',
@@ -4081,14 +4095,61 @@ function distinctValues(field){
   return [...set];
 }
 
-function chipsHTML(field, options, selected, multi){
+// kind = 'saison' | 'type' | 'regime' | 'avis' | undefined.
+// Pilote le rendu : icône SVG injectée + couleur de fond active issue
+// du même mapping que le reste de l'app (SM, typeStyle, regimeStyle,
+// avisInfo) → harmonie totale entre formulaire et catalogue.
+function chipsHTML(field, options, selected, multi, kind){
   const selArr = Array.isArray(selected) ? selected : (selected ? [selected] : []);
   return `<div class="form-chips" data-field="${field}" data-multi="${multi?1:0}">${
     options.map(opt => {
       const value = typeof opt === 'string' ? opt : opt.value;
-      const label = typeof opt === 'string' ? opt : (opt.label || opt.value);
+      let label   = typeof opt === 'string' ? opt : (opt.label || opt.value);
       const sel = selArr.includes(value) ? ' selected' : '';
-      return `<button type="button" class="form-chip${sel}" data-value="${escAttr(value)}" onclick="toggleChip(this)">${label}</button>`;
+
+      let iconHTML = '';
+      let activeStyle = '';
+      let activeShadow = '';
+
+      if (kind === 'saison') {
+        const sm = SM[value];
+        if (sm) {
+          iconHTML = seasonIcon(value, { size:13, stroke:2 });
+          if (sel) {
+            activeStyle  = `background:${sm.bgSolid};color:${sm.solidText};border-color:${sm.bgSolid};`;
+            activeShadow = `box-shadow:0 2px 8px ${sm.bgSolid}55;`;
+          }
+        }
+      } else if (kind === 'type') {
+        // typeStyle prend un array → on wrappe la valeur
+        const ts = typeStyle([value]);
+        // Le label de typeStyle inclut déjà l'emoji recette (🍲, 🥧...)
+        label = ts.label;
+        if (sel) {
+          activeStyle  = `background:${ts.bg};color:${ts.color};border-color:${ts.bg};`;
+          activeShadow = `box-shadow:0 2px 8px ${ts.bg}55;`;
+        }
+      } else if (kind === 'regime') {
+        const rs = regimeStyle(value);
+        if (sel) {
+          activeStyle  = `background:${rs.bg};color:${rs.c};border-color:${rs.bg};`;
+          activeShadow = `box-shadow:0 2px 8px ${rs.bg}55;`;
+        }
+      } else if (kind === 'avis') {
+        const info = avisInfo(value);
+        if (info) {
+          const sw = info.iconName === 'thumbUp' ? 1.8 : (info.iconName === 'heart' ? 1.5 : 1.7);
+          iconHTML = icon(info.iconName, { size:13, stroke:sw });
+          label = info.label;  // version propre sans emoji ("Coup de cœur" pas "❤️ Coup de coeur")
+          if (sel) {
+            activeStyle  = `background:${info.bg};color:${info.color};border-color:${info.bg};`;
+            activeShadow = `box-shadow:0 2px 8px ${info.bg}55;`;
+          }
+        }
+      }
+
+      const inline = sel ? `style="${activeStyle}${activeShadow}"` : '';
+      return `<button type="button" class="form-chip${sel}" data-value="${escAttr(value)}" ${inline} onclick="toggleChip(this)">${iconHTML}<span>${label}</span></button>`;
     }).join('')
   }</div>`;
 }
@@ -4153,17 +4214,17 @@ function buildRecipeFormHTML(r){
 
       <div class="form-section">
         <label class="form-label">Type de plat <span class="form-hint">plusieurs possibles</span></label>
-        ${chipsHTML('type_plat', typesList, d.type_plat, true)}
+        ${chipsHTML('type_plat', typesList, d.type_plat, true, 'type')}
       </div>
 
       <div class="form-section">
         <label class="form-label">Régime</label>
-        ${chipsHTML('regime', FORM_REGIMES, d.regime, false)}
+        ${chipsHTML('regime', FORM_REGIMES, d.regime, false, 'regime')}
       </div>
 
       <div class="form-section">
         <label class="form-label">Saison <span class="form-hint">plusieurs possibles</span></label>
-        ${chipsHTML('saison', FORM_SAISONS, d.saison, true)}
+        ${chipsHTML('saison', FORM_SAISONS, d.saison, true, 'saison')}
       </div>
 
       <div class="form-section">
@@ -4176,7 +4237,7 @@ function buildRecipeFormHTML(r){
 
       <div class="form-section">
         <label class="form-label">Avis</label>
-        ${chipsHTML('avis', FORM_AVIS, d.avis, false)}
+        ${chipsHTML('avis', FORM_AVIS, d.avis, false, 'avis')}
       </div>
 
       <div class="form-section">
