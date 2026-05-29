@@ -1561,18 +1561,21 @@ body {
 }
 .form-chip > svg { flex-shrink: 0; }
 .form-chip:active { transform: scale(0.94); }
-/* Fallback selected (sans inline style) — orange par défaut.
-   Pour les kinds saison/type/régime/avis, l'inline style écrase ces
-   propriétés avec la couleur thématique. */
+/* État sélectionné — consomme les CSS variables émises par chipsHTML
+   pour chaque chip (saison/type/régime/avis → couleur thématique
+   correspondante ; chips sans kind → fallback orange via les valeurs
+   par défaut des variables). Toggle au click = la classe change,
+   les variables s'appliquent immédiatement, pas besoin de re-render. */
 .form-chip.selected {
-  background: var(--orange);
-  color: white;
-  border-color: var(--orange);
-  box-shadow: 0 2px 8px rgba(255,107,46,0.30);
+  background:   var(--chip-active-bg, var(--orange));
+  color:        var(--chip-active-fg, white);
+  border-color: var(--chip-active-bg, var(--orange));
+  box-shadow:   0 2px 8px var(--chip-active-shadow, rgba(255,107,46,0.30));
 }
-/* L'icône d'un chip sélectionné suit la couleur (currentColor) ;
-   pour heart/thumbUp on remplit aussi le path pour plus de présence. */
 .form-chip.selected > svg { color: inherit; }
+/* heart et thumb-up remplis (vs juste contour) pour ressortir
+   davantage sur le fond plein du chip sélectionné. */
+.form-chip.selected svg path { stroke-linejoin: round; }
 /* Gestion des photos dans le formulaire */
 .form-photos {
   display: grid;
@@ -4096,9 +4099,12 @@ function distinctValues(field){
 }
 
 // kind = 'saison' | 'type' | 'regime' | 'avis' | undefined.
-// Pilote le rendu : icône SVG injectée + couleur de fond active issue
-// du même mapping que le reste de l'app (SM, typeStyle, regimeStyle,
-// avisInfo) → harmonie totale entre formulaire et catalogue.
+// On émet 3 CSS variables sur CHAQUE chip (qu'il soit sélectionné ou
+// non au render) : --chip-active-bg / --chip-active-fg / --chip-active-shadow.
+// Le CSS .form-chip.selected les consomme. Résultat : toggleChip(),
+// qui se contente d'ajouter/retirer la classe .selected, déclenche
+// immédiatement le bon rendu coloré — sans avoir à toucher les styles
+// inline au runtime.
 function chipsHTML(field, options, selected, multi, kind){
   const selArr = Array.isArray(selected) ? selected : (selected ? [selected] : []);
   return `<div class="form-chips" data-field="${field}" data-multi="${multi?1:0}">${
@@ -4108,50 +4114,56 @@ function chipsHTML(field, options, selected, multi, kind){
       const sel = selArr.includes(value) ? ' selected' : '';
 
       let iconHTML = '';
-      let activeStyle = '';
-      let activeShadow = '';
+      // Couleurs cibles selon kind (fallback orange si rien ne matche).
+      let bg = '#FF6B2E', fg = '#FFFFFF', shadow = '255,107,46';
 
       if (kind === 'saison') {
         const sm = SM[value];
         if (sm) {
           iconHTML = seasonIcon(value, { size:13, stroke:2 });
-          if (sel) {
-            activeStyle  = `background:${sm.bgSolid};color:${sm.solidText};border-color:${sm.bgSolid};`;
-            activeShadow = `box-shadow:0 2px 8px ${sm.bgSolid}55;`;
-          }
+          bg = sm.bgSolid;
+          fg = sm.solidText;
+          shadow = hexToRgbTriplet(sm.bgSolid);
         }
       } else if (kind === 'type') {
-        // typeStyle prend un array → on wrappe la valeur
         const ts = typeStyle([value]);
-        // Le label de typeStyle inclut déjà l'emoji recette (🍲, 🥧...)
-        label = ts.label;
-        if (sel) {
-          activeStyle  = `background:${ts.bg};color:${ts.color};border-color:${ts.bg};`;
-          activeShadow = `box-shadow:0 2px 8px ${ts.bg}55;`;
-        }
+        label = ts.label;  // emoji 🥧/🥗/... intégré
+        bg = ts.bg; fg = ts.color;
+        shadow = hexToRgbTriplet(ts.bg);
       } else if (kind === 'regime') {
         const rs = regimeStyle(value);
-        if (sel) {
-          activeStyle  = `background:${rs.bg};color:${rs.c};border-color:${rs.bg};`;
-          activeShadow = `box-shadow:0 2px 8px ${rs.bg}55;`;
-        }
+        bg = rs.bg; fg = rs.c;
+        shadow = hexToRgbTriplet(rs.bg);
       } else if (kind === 'avis') {
         const info = avisInfo(value);
         if (info) {
           const sw = info.iconName === 'thumbUp' ? 1.8 : (info.iconName === 'heart' ? 1.5 : 1.7);
           iconHTML = icon(info.iconName, { size:13, stroke:sw });
-          label = info.label;  // version propre sans emoji ("Coup de cœur" pas "❤️ Coup de coeur")
-          if (sel) {
-            activeStyle  = `background:${info.bg};color:${info.color};border-color:${info.bg};`;
-            activeShadow = `box-shadow:0 2px 8px ${info.bg}55;`;
-          }
+          label = info.label;
+          bg = info.bg; fg = info.color;
+          shadow = hexToRgbTriplet(info.bg);
         }
       }
 
-      const inline = sel ? `style="${activeStyle}${activeShadow}"` : '';
-      return `<button type="button" class="form-chip${sel}" data-value="${escAttr(value)}" ${inline} onclick="toggleChip(this)">${iconHTML}<span>${label}</span></button>`;
+      const vars = `--chip-active-bg:${bg};--chip-active-fg:${fg};--chip-active-shadow:rgba(${shadow},0.30)`;
+      return `<button type="button" class="form-chip${sel}" data-value="${escAttr(value)}" style="${vars}" onclick="toggleChip(this)">${iconHTML}<span>${label}</span></button>`;
     }).join('')
   }</div>`;
+}
+
+// Petit helper : "#FF6B2E" → "255,107,46" pour bâtir des rgba() à la volée.
+function hexToRgbTriplet(hex){
+  const h = (hex || '').replace('#','').trim();
+  if (h.length === 3) {
+    const r = parseInt(h[0]+h[0], 16);
+    const g = parseInt(h[1]+h[1], 16);
+    const b = parseInt(h[2]+h[2], 16);
+    return `${r},${g},${b}`;
+  }
+  if (h.length === 6) {
+    return `${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)}`;
+  }
+  return '255,107,46';  // fallback orange
 }
 
 function weeksFormHTML(selected){
