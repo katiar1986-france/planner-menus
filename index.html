@@ -2427,9 +2427,10 @@ function buildSemaines(){
     if(i===cur) cls.push('current');
     if(i===w) cls.push('selected');
     const ws = saison(i), wsm = SM[ws];
-    // CSS variables = on expose les 3 teintes de la saison, et le CSS
-    // décide quel rendu adopter selon l'état (default / current / selected).
-    const styles = `--chip-bg:${wsm.bgSolid};--chip-fg:${wsm.solidText};--chip-tint:${wsm.color}`;
+    // Cards en BLANC + texte/picto dans la couleur foncée de la saison.
+    // --chip-tint reste sm.color, utilisé par .current pour le border
+    // qui souligne la semaine en cours.
+    const styles = `--chip-bg:#FFFFFF;--chip-fg:${wsm.color};--chip-tint:${wsm.color}`;
     const emoji = weekEmoji(i, { plain: true });
     html+=`<button class="${cls.join(' ')}" data-week="${i}" style="${styles}" onclick="goToWeek(${i})">
       <span class="week-chip-emoji">${emoji}</span>
