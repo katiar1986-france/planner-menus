@@ -548,12 +548,19 @@ body {
   overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
 }
 .weeks-strip::-webkit-scrollbar { display: none; }
-/* Chips de la strip 52 semaines : aplats saison plein (bgSolid),
-   icône + numéro hérités de la couleur du chip (blanc partout, sauf
-   Été qui prend du texte sombre via SM.solidText pour rester lisible).
-   Le fond est posé via inline style depuis le template (background:bgSolid). */
+/* Chips de la strip 52 semaines.
+   Trois variables sont injectées par le template (par chip) :
+     --chip-bg   = couleur saison saturée (bleu/vert/jaune/terracotta)
+     --chip-fg   = couleur texte par défaut (blanc, ou sombre sur Été)
+     --chip-tint = couleur saison foncée pour les états inversés
+   Trois rendus selon l'état :
+     défaut    → aplat saison plein, texte/picto blanc
+     current   → INVERSE : fond blanc, contour + texte/picto saison
+     selected  → border blanc 2px + ombre (au-dessus de l'aplat saison) */
 .week-chip {
   flex-shrink: 0;
+  background: var(--chip-bg);
+  color: var(--chip-fg);
   border: 2px solid transparent;
   border-radius: var(--radius-sm);
   padding: 9px 8px 8px;
@@ -561,7 +568,7 @@ body {
   font-family: var(--f);
   cursor: pointer;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
-  transition: transform 0.12s, border-color 0.18s, box-shadow 0.18s;
+  transition: transform 0.12s, border-color 0.18s, box-shadow 0.18s, background 0.18s, color 0.18s;
   position: relative;
   box-shadow: 0 1px 4px rgba(0,0,0,0.10);
 }
@@ -576,22 +583,25 @@ body {
   font-size: 11px; font-weight: 900; letter-spacing: 0.02em;
   color: inherit;
 }
-/* État "semaine en cours" : anneau de contraste autour du chip,
-   couleur opposée à la teinte saison. */
+/* État "semaine en cours" : inversion = fond blanc, contour et
+   texte/picto en couleur de la saison. */
 .week-chip.current {
-  box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--orange);
-  z-index: 1;
+  background: var(--white);
+  color: var(--chip-tint);
+  border-color: var(--chip-tint);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
 }
-/* État "sélectionnée" (la semaine ouverte par l'utilisateur) : border
-   blanc épais qui se lit sur tous les aplats saison. */
+/* État "sélectionnée" sur fond saison : border blanc + ombre marquée. */
 .week-chip.selected {
   border-color: rgba(255,255,255,0.95);
   box-shadow: 0 2px 10px rgba(0,0,0,0.20);
 }
-/* Quand sélectionnée + en cours : double anneau (orange à l'extérieur,
-   blanc en bordure interne). */
+/* Sélectionnée + en cours : on garde l'inversion blanche et on épaissit
+   le contour pour signaler la sélection. */
 .week-chip.current.selected {
-  box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--orange), 0 2px 10px rgba(0,0,0,0.20);
+  border-color: var(--chip-tint);
+  border-width: 3px;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.18);
 }
 
 /* ══════════════════════════
@@ -2348,9 +2358,11 @@ function buildSemaines(){
     if(i===cur) cls.push('current');
     if(i===w) cls.push('selected');
     const ws = saison(i), wsm = SM[ws];
-    // Icône non teintée : elle hérite du blanc imposé par le chip.
+    // CSS variables = on expose les 3 teintes de la saison, et le CSS
+    // décide quel rendu adopter selon l'état (default / current / selected).
+    const styles = `--chip-bg:${wsm.bgSolid};--chip-fg:${wsm.solidText};--chip-tint:${wsm.color}`;
     const emoji = weekEmoji(i, { plain: true });
-    html+=`<button class="${cls.join(' ')}" data-week="${i}" style="background:${wsm.bgSolid};color:${wsm.solidText}" onclick="goToWeek(${i})">
+    html+=`<button class="${cls.join(' ')}" data-week="${i}" style="${styles}" onclick="goToWeek(${i})">
       <span class="week-chip-emoji">${emoji}</span>
       <span class="week-chip-num">S${String(i).padStart(2,'0')}</span>
     </button>`;
