@@ -104,7 +104,11 @@
 }
 html {
   height: 100%;
-  background: var(--white); /* filet de sécurité : si iOS laisse un gap sous la nav, il sera blanc et non beige */
+  /* Même fond que le body : sur écran plus large que max-width: 430px
+     (iPad, desktop, ou viewport iPhone exactement à la marge), pas de
+     liseré blanc visible autour de l'app. Le filet sous la bottom-nav
+     est géré par .bottom-nav::after qui reste blanc → continuité OK. */
+  background: var(--paper);
 }
 body {
   font-family: var(--f);
@@ -276,7 +280,7 @@ body {
 .week-hero {
   position: relative; height: 260px; overflow: hidden; flex-shrink: 0;
 }
-.week-hero-img { width: 100%; height: 100%; object-fit: cover; }
+.week-hero-img { width: 100%; height: 100%; object-fit: cover; display: block; }
 /* Overlay teinté sapin, plus marqué qu'avant pour garantir la
    lisibilité du texte blanc même sur des photos très claires. */
 .week-hero-overlay {
