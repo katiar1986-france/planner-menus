@@ -52,16 +52,30 @@
   --label3: var(--ink-3);
   --sep: rgba(31, 61, 51, 0.08);
 
-  /* Quadrichromie signature */
-  --orange:      #FF6B2E;   /* action primaire, FAB */
-  --orange-deep: #E8531A;
-  --orange-soft: rgba(255,107,46,0.12);
-  --sapin:       #1F5D4F;   /* état "fait", saison Hiver, secondary */
-  --sapin-soft:  rgba(31,93,79,0.10);
-  --corail:      #E25B4A;   /* delete, coup de cœur, saison Automne */
-  --corail-soft: rgba(226,91,74,0.12);
-  --moutarde:    #F5A623;   /* favoris, étoile cover, saison Printemps */
+  /* Palette signature étendue. Quadrichromie du logo + 2 teintes
+     ajoutées (bleu Hiver, vert clair Printemps) pour mapper les
+     saisons et la nav demandés par Katia. */
+  --orange:        #FF6B2E;  /* action primaire, FAB, tab Courses */
+  --orange-deep:   #E8531A;
+  --orange-soft:   rgba(255,107,46,0.12);
+  --sapin:         #1F5D4F;  /* sapin foncé, état "fait", logo */
+  --sapin-soft:    rgba(31,93,79,0.10);
+  --vert-clair:    #6FAE3D;  /* vert frais, Printemps, Végé, tab Semaine */
+  --vert-clair-soft: rgba(111,174,61,0.16);
+  --vert-sauge:    #94A66B;  /* Vegan (vert sauge un poil + neutre) */
+  --vert-sauge-soft: rgba(148,166,107,0.18);
+  --terracotta:    #C26447;  /* Automne, tab Planning */
+  --terracotta-soft: rgba(194,100,71,0.14);
+  --corail:        #E25B4A;  /* delete, viande */
+  --corail-soft:   rgba(226,91,74,0.12);
+  --rouge:         #D6403B;  /* coup de cœur, viande (un poil + saturé) */
+  --rouge-soft:    rgba(214,64,59,0.14);
+  --moutarde:      #F5A623;  /* favoris, étoile cover */
   --moutarde-soft: rgba(245,166,35,0.14);
+  --jaune-orange:  #F2BC1A;  /* Été (jaune-orange), tab Recettes */
+  --jaune-orange-soft: rgba(242,188,26,0.18);
+  --bleu:          #2E7BB8;  /* Hiver (bleu glacier), Poisson */
+  --bleu-soft:     rgba(46,123,184,0.14);
 
   /* Géométrie : un poil plus généreux qu'avant */
   --radius:    22px;
@@ -180,21 +194,31 @@ body {
   transition: color 0.18s;
   position: relative; z-index: 1;
 }
-.nav-btn.active .nav-icon { color: var(--orange); transform: scale(1.08); }
-.nav-btn.active .nav-label { color: var(--orange); }
-/* Petit aplat orange-soft sur le tab actif pour l'ancrer visuellement
-   sans empiéter sur l'ergonomie. */
+/* Chaque tab a sa couleur signature (cf brief) :
+   - Semaine  → vert clair
+   - Planning → terracotta
+   - Courses  → orange (FAB)
+   - Recettes → jaune-orange
+   Le pill `::before` actif prend la version "soft" de la couleur. */
 .nav-btn { position: relative; overflow: visible; }
+.nav-btn.active .nav-icon { transform: scale(1.08); }
 .nav-btn.active::before {
   content: '';
   position: absolute;
   top: 4px; left: 50%; transform: translateX(-50%);
   width: 44px; height: 30px;
-  background: var(--orange-soft);
   border-radius: 16px;
   z-index: 0;
   pointer-events: none;
 }
+#btn-semaines.active  .nav-icon, #btn-semaines.active  .nav-label  { color: var(--vert-clair); }
+#btn-semaines.active::before                                       { background: var(--vert-clair-soft); }
+#btn-planning.active  .nav-icon, #btn-planning.active  .nav-label  { color: var(--terracotta); }
+#btn-planning.active::before                                       { background: var(--terracotta-soft); }
+#btn-courses.active   .nav-icon, #btn-courses.active   .nav-label  { color: var(--orange); }
+#btn-courses.active::before                                        { background: var(--orange-soft); }
+#btn-catalogue.active .nav-icon, #btn-catalogue.active .nav-label  { color: #B68500; }
+#btn-catalogue.active::before                                      { background: var(--jaune-orange-soft); }
 
 /* FAB centré */
 .nav-fab-wrap {
@@ -223,6 +247,37 @@ body {
 /* ══════════════════════════
    SCREEN SEMAINES
 ══════════════════════════ */
+/* Brand bar : signature de l'app affichée en haut de la home.
+   Le logo (cocotte fumante) + le nom en typo display = identité
+   forte dès l'ouverture, sans toucher au flux ergonomique. */
+.app-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: max(8px, var(--safe-top)) 16px 8px 16px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--sep);
+  flex-shrink: 0;
+}
+.app-brand-logo {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  /* L'icône a déjà un fond orange — on l'encadre juste avec un radius
+     et une légère ombre pour qu'elle ressorte comme une "app icon". */
+  box-shadow: 0 2px 6px rgba(78, 52, 30, 0.16);
+}
+.app-brand-name {
+  font-family: var(--f-display);
+  font-size: 21px;
+  letter-spacing: -0.4px;
+  color: var(--orange-deep);
+  line-height: 1;
+  flex: 1;
+}
+.app-brand-q {
+  color: var(--sapin);
+  margin-left: 1px;
+}
+
 .semaines-scroll {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -297,9 +352,11 @@ body {
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
 }
 
-/* Today pill — flotte sur le hero quand on n'est pas sur la semaine en cours */
+/* Today pill — flotte sur le hero quand on n'est pas sur la semaine en cours.
+   Le brand bar gère le safe-area en haut, donc le pill se positionne
+   simplement par rapport au hero (qui est sous le brand bar). */
 .today-pill {
-  position: absolute; top: calc(var(--safe-top) + 12px); right: 14px;
+  position: absolute; top: 12px; right: 14px;
   background: rgba(255,255,255,0.97);
   -webkit-backdrop-filter: blur(10px) saturate(1.4); backdrop-filter: blur(10px) saturate(1.4);
   border: none; cursor: pointer;
@@ -369,10 +426,10 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.22);
 }
 /* Aplats sémantiques : chaque avis a sa couleur signature.
-   Corail = coup de coeur, sapin = approuvé, moutarde = mitigé. */
+   Rouge = coup de cœur, sapin = approuvé, moutarde = mitigé. */
 .card-avis.avis-coeur, .cat-avis.avis-coeur {
-  background: var(--corail); color: white;
-  box-shadow: 0 2px 8px rgba(226, 91, 74, 0.45);
+  background: var(--rouge); color: white;
+  box-shadow: 0 2px 8px rgba(214, 64, 59, 0.50);
 }
 .card-avis.avis-approuve, .cat-avis.avis-approuve {
   background: var(--sapin); color: white;
@@ -456,8 +513,9 @@ body {
 .sheet-photo.img-placeholder .ph-emoji { font-size: 82px; }
 .card-type-badge {
   position: absolute; bottom: 12px; left: 12px;
-  padding: 4px 10px; border-radius: 8px;
-  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 5px 11px; border-radius: 10px;
+  font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.30);
 }
 .card-body { padding: 14px 16px 16px; }
 .card-title {
@@ -466,7 +524,11 @@ body {
   margin-bottom: 8px;
 }
 .card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.card-tag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 7px; }
+.card-tag {
+  font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 8px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
 
 /* Empty state */
 .empty-state {
@@ -582,14 +644,14 @@ body {
   border-color: var(--orange);
   box-shadow: 0 2px 8px rgba(255,107,46,0.30);
 }
-.filter-chip.chip-fav.active { background: var(--corail); border-color: var(--corail); box-shadow: 0 2px 8px rgba(226,91,74,0.35); }
+.filter-chip.chip-fav.active { background: var(--rouge); border-color: var(--rouge); box-shadow: 0 2px 8px rgba(214,64,59,0.40); }
 /* Chips saison : chaque chip prend SA couleur en aplat dès l'état actif.
-   Renforce le mapping signature : Hiver=sapin, Printemps=moutarde,
-   Été=orange, Automne=corail (cohérent avec SM et le logo). */
-.filter-chip.chip-hiver.active     { background: var(--sapin);    border-color: var(--sapin);    box-shadow: 0 2px 8px rgba(31,93,79,0.35); }
-.filter-chip.chip-printemps.active { background: var(--moutarde); border-color: var(--moutarde); color: var(--ink); box-shadow: 0 2px 8px rgba(245,166,35,0.4); }
-.filter-chip.chip-ete.active       { background: var(--orange);   border-color: var(--orange);   box-shadow: 0 2px 8px rgba(255,107,46,0.35); }
-.filter-chip.chip-automne.active   { background: var(--corail);   border-color: var(--corail);   box-shadow: 0 2px 8px rgba(226,91,74,0.35); }
+   Mapping naturaliste demandé par Katia :
+   Hiver=bleu, Printemps=vert clair, Été=jaune-orange, Automne=terracotta. */
+.filter-chip.chip-hiver.active     { background: var(--bleu);         border-color: var(--bleu);         box-shadow: 0 2px 8px rgba(46,123,184,0.40); }
+.filter-chip.chip-printemps.active { background: var(--vert-clair);   border-color: var(--vert-clair);   box-shadow: 0 2px 8px rgba(111,174,61,0.40); }
+.filter-chip.chip-ete.active       { background: var(--jaune-orange); border-color: var(--jaune-orange); color: var(--ink); box-shadow: 0 2px 8px rgba(242,188,26,0.45); }
+.filter-chip.chip-automne.active   { background: var(--terracotta);   border-color: var(--terracotta);   box-shadow: 0 2px 8px rgba(194,100,71,0.40); }
 .catalogue-scroll {
   flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
   padding: 16px 16px calc(var(--nav-h) + var(--safe-bottom-tight) + 16px);
@@ -1281,10 +1343,17 @@ body {
   font-size: 11px; font-weight: 800;
   white-space: nowrap;
   background: rgba(255,255,255,0.96);
+  color: var(--ink-2);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
   display: inline-flex; align-items: center; gap: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
 }
 .sheet-photo-tag svg { flex-shrink: 0; }
+/* Variante "aplat plein" : pill colorée saturée (type de plat + régime). */
+.sheet-photo-tag.tag-solid {
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
 .sheet-photo-title {
   font-family: var(--f-display);
   font-size: 27px; font-weight: 400; color: white;
@@ -1598,6 +1667,13 @@ body {
 
 <!-- SCREEN SEMAINES -->
 <div class="screen active" id="screen-semaines">
+  <!-- Brand bar : identité de l'app à l'ouverture. Affichée
+       UNIQUEMENT sur la home (Semaine), pas sur les autres écrans
+       qui ont leurs propres titres. -->
+  <header class="app-brand">
+    <img src="logo.svg" class="app-brand-logo" alt="OnMangeQuoiMaman?">
+    <span class="app-brand-name">On mange quoi maman<span class="app-brand-q">?</span></span>
+  </header>
   <div class="semaines-scroll" id="semaines-scroll">
     <div class="loader-wrap" id="loader-s">
       <div class="loader"></div>
@@ -1734,14 +1810,13 @@ function saison(w){
   if(w>=40 && w<=52) return 'Automne';
   return 'Hiver';
 }
-// Couleurs saisons = les 4 bandeaux quadrichromiques du logo.
-// Hiver→sapin (cocotte), Printemps→moutarde, Été→orange (icône), Automne→corail.
-// Donne à l'app une signature visuelle cohérente avec le launcher PWA.
+// Saisons : couleurs naturalistes + pictos évocateurs.
+// Hiver→bleu glacier, Printemps→vert clair, Été→jaune-orange, Automne→terracotta.
 const SM={
-  Hiver:    {iconName:'snowflake', color:'#1F5D4F', bg:'rgba(31, 93, 79, 0.14)',  bgSolid:'#1F5D4F'},
-  Printemps:{iconName:'flower',    color:'#C97F0C', bg:'rgba(245, 166, 35, 0.18)', bgSolid:'#F5A623'},
-  Été:      {iconName:'sun',       color:'#E8531A', bg:'rgba(255, 107, 46, 0.16)', bgSolid:'#FF6B2E'},
-  Automne:  {iconName:'leaf',      color:'#C13E2D', bg:'rgba(226, 91, 74, 0.16)',  bgSolid:'#E25B4A'},
+  Hiver:    {iconName:'snowflake', color:'#1E5F90', bg:'rgba(46, 123, 184, 0.16)', bgSolid:'#2E7BB8'},
+  Printemps:{iconName:'flower',    color:'#3F7F23', bg:'rgba(111, 174, 61, 0.18)', bgSolid:'#6FAE3D'},
+  Été:      {iconName:'sun',       color:'#B68500', bg:'rgba(242, 188, 26, 0.22)', bgSolid:'#F2BC1A'},
+  Automne:  {iconName:'mapleLeaf', color:'#9C4828', bg:'rgba(194, 100, 71, 0.16)', bgSolid:'#C26447'},
 };
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1759,11 +1834,16 @@ const ICONS = {
   // Planning tabs
   sparkles: '<path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/>',
   chartBar: '<path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>',
-  // Saisons (custom — Heroicons n'a pas snowflake/leaf/flower)
-  snowflake: '<path d="M12 2v20M2 12h20M5 5l14 14M19 5 5 19M12 6l-2 2m2-2 2 2m-4 0H8m4 0v3m0 7-2-2m2 2 2-2m-2-2v3M6 12l2-2m-2 2 2 2m1 0H6m12-4-2 2m2-2-2-2m1 0h-3M9 9l3-1 3 1M9 15l3 1 3-1"/>',
-  flower: '<circle cx="12" cy="12" r="2.2" fill="currentColor"/><path d="M12 9.8c0-2.8 1.2-5.3 0-5.3s0 2.5 0 5.3Zm0 4.4c0 2.8-1.2 5.3 0 5.3s0-2.5 0-5.3Zm-2.2-2.2c-2.8 0-5.3-1.2-5.3 0s2.5 0 5.3 0Zm4.4 0c2.8 0 5.3 1.2 5.3 0s-2.5 0-5.3 0Zm-3.4-2.7c-1.4-2.4-3.6-4-2.6-4.6s2 2 3.4 4.4Zm3.4 5.4c1.4 2.4 3.6 4 2.6 4.6s-2-2-3.4-4.4Zm-5.4-1.7c-2.4-1.4-4-3.6-4.6-2.6s2 2 4.4 3.4Zm7.2-2c2.4-1.4 4.6-3 4-4s-2 2-4.4 3.4Z"/>',
+  // Saisons (custom — pictos signature, lisibles à toutes les tailles)
+  // Flocon : 3 axes principaux + petites branches en V sur chaque axe
+  snowflake: '<path d="M12 2v20M3.34 7l17.32 10M3.34 17l17.32-10"/><path d="M12 5l-2 1.5M12 5l2 1.5M12 19l-2-1.5M12 19l2-1.5M5.6 8.3l.4 2.4M5.6 8.3l-2 .7M18.4 15.7l.4-2.4M18.4 15.7l2-.7M5.6 15.7l-.4-2.4M5.6 15.7l-2-.7M18.4 8.3l-.4 2.4M18.4 8.3l2 .7"/>',
+  // Fleur : 4 pétales ronds remplis + cœur central, lecture claire
+  flower: '<circle cx="12" cy="5" r="2.6" fill="currentColor"/><circle cx="12" cy="19" r="2.6" fill="currentColor"/><circle cx="5" cy="12" r="2.6" fill="currentColor"/><circle cx="19" cy="12" r="2.6" fill="currentColor"/><circle cx="12" cy="12" r="2.6" fill="white" stroke="currentColor" stroke-width="1.5"/>',
+  // Soleil : disque + 8 rayons
   sun: '<path d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/>',
-  leaf: '<path d="M3.75 20.25c0-9 6.75-15.75 16.5-16.5-.75 9.75-7.5 16.5-16.5 16.5Zm0 0L13.5 10.5"/>',
+  // Feuille d érable : 9 lobes pointus en étoile + tige basse.
+  // Lecture immédiate "Canada/automne".
+  mapleLeaf: '<path d="M12 3 L13.4 6.8 L16.6 5.4 L15.6 9 L19.8 9.6 L17.2 12 L19.4 15.4 L15.4 14.8 L14.6 19 L12 17.2 L9.4 19 L8.6 14.8 L4.6 15.4 L6.8 12 L4.2 9.6 L8.4 9 L7.4 5.4 L10.6 6.8 Z M12 17.2 V21" fill="currentColor" stroke-width="1"/>',
   // Actions / état
   plus: '<path d="M12 4.5v15m7.5-7.5h-15"/>',
   xMark: '<path d="M6 18 18 6M6 6l12 12"/>',
@@ -1929,28 +2009,46 @@ function imgOrPlaceholder(r, imgClass){
   return `<div class="${imgClass} img-placeholder"><span class="ph-emoji">${recipeEmoji(r)}</span></div>`;
 }
 
-// Type de plat → couleur signature du logo (4 teintes).
-// Plus de Tailwind random : on tient une vraie palette unifiée.
+// Type de plat → emoji descriptif + APLAT plein (couleur saturée + texte blanc).
+// Mapping demandé par Katia : on remet les emojis sur les types
+// (lecture fun et immédiate) tout en gardant les SVG sur les saisons
+// (signature visuelle large).
+// Fusion : "Plat" et "Plat complet" (avec ou sans végé) → même tag 🍲.
 function typeStyle(types){
-  const ty=(types||[]).join(' ');
-  if(ty.includes('Dimanche'))                                          return {label:'Dimanche',       bg:'rgba(226, 91, 74, 0.14)', color:'#C13E2D'};
-  if(ty.includes('Quiche')||ty.includes('Tarte')||ty.includes('Cake')) return {label:'Quiche / Tarte', bg:'rgba(245,166, 35, 0.18)', color:'#C97F0C'};
-  if(ty.includes('Soupe'))                                             return {label:'Soupe',          bg:'rgba(31, 93, 79, 0.13)',  color:'#1F5D4F'};
-  if(ty.includes('Salade'))                                            return {label:'Salade',         bg:'rgba(31, 93, 79, 0.13)',  color:'#1F5D4F'};
-  if(ty.includes('végé')||ty.includes('Vegan'))                        return {label:'Végétarien',     bg:'rgba(31, 93, 79, 0.13)',  color:'#1F5D4F'};
-  if(ty.includes('Dessert'))                                           return {label:'Dessert',        bg:'rgba(245,166, 35, 0.18)', color:'#C97F0C'};
-  return                                                                      {label:'Plat',           bg:'rgba(255,107, 46, 0.14)', color:'#E8531A'};
+  const ty = (types||[]).join(' ');
+  if (ty.includes('Quiche') || ty.includes('Tarte') || ty.includes('Cake'))
+    return { label:'🥧 Quiche',   bg:'#F2BC1A', color:'#FFFFFF' };  // moutarde
+  if (ty.includes('Soupe'))
+    return { label:'🍲 Soupe',    bg:'#C26447', color:'#FFFFFF' };  // terracotta
+  if (ty.includes('Salade'))
+    return { label:'🥗 Salade',   bg:'#6FAE3D', color:'#FFFFFF' };  // vert clair
+  if (ty.includes('Entrée') || ty.includes('Entree'))
+    return { label:'🥒 Entrée',   bg:'#94A66B', color:'#FFFFFF' };  // vert sauge
+  if (ty.includes('Dessert'))
+    return { label:'🍧 Dessert',  bg:'#D6403B', color:'#FFFFFF' };  // rouge
+  if (ty.includes('Tartine'))
+    return { label:'🥪 Tartines', bg:'#F2BC1A', color:'#FFFFFF' };  // moutarde
+  if (ty.includes('Goûter') || ty.includes('Gouter'))
+    return { label:'🥞 Goûter',   bg:'#F2BC1A', color:'#FFFFFF' };  // moutarde
+  if (ty.includes('Mercredi'))
+    return { label:'🥩 Mercredi', bg:'#D6403B', color:'#FFFFFF' };  // rouge
+  if (ty.includes('Dimanche'))
+    return { label:'🥘 Dimanche', bg:'#C26447', color:'#FFFFFF' };  // terracotta
+  // "Plat", "Plat complet", "Plat complet végé/vegan" → tous mappés en 🍲 Plat.
+  return   { label:'🍲 Plat',     bg:'#FF6B2E', color:'#FFFFFF' };  // orange
 }
-// Régime → couleur signature
+// Régime → APLAT plein (cf brief Katia).
+//   Végé    = vert clair    Vegan = vert sauge   Poisson = bleu
+//   Viande  = rouge          Flexi = orange
 function regimeStyle(r){
   const m = {
-    'Végé':    {bg:'rgba(31, 93, 79, 0.13)',  c:'#1F5D4F'},
-    'Vegan':   {bg:'rgba(31, 93, 79, 0.16)',  c:'#1F5D4F'},
-    'Poisson': {bg:'rgba(255,107, 46, 0.14)', c:'#E8531A'},
-    'Viande':  {bg:'rgba(226, 91, 74, 0.14)', c:'#C13E2D'},
-    'Flexi':   {bg:'rgba(140,150,144,0.16)',  c:'#4A5C54'},
+    'Végé':    {bg:'#6FAE3D', c:'#FFFFFF'},
+    'Vegan':   {bg:'#94A66B', c:'#FFFFFF'},
+    'Poisson': {bg:'#2E7BB8', c:'#FFFFFF'},
+    'Viande':  {bg:'#D6403B', c:'#FFFFFF'},
+    'Flexi':   {bg:'#FF6B2E', c:'#FFFFFF'},
   };
-  return m[r] || {bg:'rgba(140,150,144,0.16)', c:'#4A5C54'};
+  return m[r] || {bg:'#8C9690', c:'#FFFFFF'};
 }
 // Renvoie le badge avis complet (rond coloré + icône SVG inline) prêt à
 // poser dans le markup, OU une chaîne vide si pas d'avis renseigné.
@@ -2311,10 +2409,10 @@ function openSheet(id){
       <button class="sheet-close" onclick="closeSheet()" aria-label="Fermer">${icon('xMark',{size:16,stroke:2.4})}</button>
       <div class="sheet-photo-content">
         <div class="sheet-photo-tags">
-          <span class="sheet-photo-tag" style="color:${ts.color}">${ts.label}</span>
-          ${rs?`<span class="sheet-photo-tag" style="color:${rs.c}">${r.regime}</span>`:''}
-          ${r.cuisine?`<span class="sheet-photo-tag" style="color:#555">${r.cuisine}</span>`:''}
-          ${av?`<span class="sheet-photo-tag" style="color:#555">${r.avis}</span>`:''}
+          <span class="sheet-photo-tag tag-solid" style="background:${ts.bg};color:${ts.color}">${ts.label}</span>
+          ${rs?`<span class="sheet-photo-tag tag-solid" style="background:${rs.bg};color:${rs.c}">${r.regime}</span>`:''}
+          ${r.cuisine?`<span class="sheet-photo-tag">${r.cuisine}</span>`:''}
+          ${av?`<span class="sheet-photo-tag">${r.avis}</span>`:''}
         </div>
         <div class="sheet-photo-title">${r.titre}</div>
       </div>
@@ -3829,13 +3927,27 @@ async function deleteRecipe(recetteId){
 // FORMULAIRE RECETTE (ajout / modification)
 // ══════════════════════════════════════════════════════════════════════════
 
-const FORM_TYPES = ['Plat', 'Plat complet', 'Dimanche midi', 'Quiche / Tarte / Cake', 'Soupe', 'Salade', 'Entrée', 'Dessert'];
+// Fusion "Plat" + "Plat complet" → on garde le seul label canonique "Plat complet".
+// (Les anciennes recettes en DB avec type_plat=["Plat"] sont quand même reconnues
+//  par typeStyle.includes('Plat') côté affichage — pas de perte d'identité visuelle.)
+const FORM_TYPES = [
+  'Plat complet',
+  'Dimanche midi',
+  'Mercredi midi',
+  'Quiche / Tarte / Cake',
+  'Soupe',
+  'Salade',
+  'Entrée',
+  'Dessert',
+  'Tartines',
+  'Goûter',
+];
 const FORM_REGIMES = ['Végé', 'Vegan', 'Poisson', 'Viande', 'Flexi'];
 const FORM_SAISONS = [
   { value: 'Hiver',     label: '❄️ Hiver' },
-  { value: 'Printemps', label: '🌸 Printemps' },
+  { value: 'Printemps', label: '🌷 Printemps' },
   { value: 'Été',       label: '☀️ Été' },
-  { value: 'Automne',   label: '🍂 Automne' },
+  { value: 'Automne',   label: '🍁 Automne' },
 ];
 const FORM_AVIS = [
   '❤️ Coup de coeur',
