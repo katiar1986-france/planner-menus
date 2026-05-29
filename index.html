@@ -248,35 +248,21 @@ body {
    SCREEN SEMAINES
 ══════════════════════════ */
 /* Brand bar : signature de l'app affichée en haut de la home.
-   Fond orange du logo + texte blanc = identité forte, jamais ratée. */
+   Le logo (logo-mark.svg, sans son fond orange propre) repose
+   directement sur le fond orange du brand bar — raccord parfait,
+   pas de cadre, pas d'encart "app icon".
+   Texte "ON MANGE QUOI MAMAN ?" déjà intégré au SVG en blanc. */
 .app-brand {
-  display: flex; align-items: center; gap: 12px;
-  padding: max(10px, calc(var(--safe-top) + 4px)) 18px 12px 18px;
-  background: #f07b01;  /* orange du logo SVG, raccord parfait avec l'app-brand-logo */
+  display: flex; align-items: center; justify-content: center;
+  padding: max(8px, var(--safe-top)) 16px 4px 16px;
+  background: #f07b01;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
 }
 .app-brand-logo {
-  width: 38px; height: 38px;
-  border-radius: 9px;
-  flex-shrink: 0;
-  /* Léger contour blanc pour détacher le logo du fond orange (qui est
-     déjà l'orange du logo lui-même). */
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.65), 0 1px 3px rgba(0,0,0,0.15);
-  background: white;
-}
-.app-brand-name {
-  font-family: var(--f-display);
-  font-size: 22px;
-  letter-spacing: -0.4px;
-  color: #FFFFFF;
-  line-height: 1;
-  flex: 1;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.15);
-}
-.app-brand-q {
-  color: #FFFFFF;  /* tout en blanc pour rester lisible */
-  margin-left: 1px;
+  height: 78px;
+  width: auto;
+  display: block;
 }
 
 .semaines-scroll {
@@ -681,8 +667,12 @@ body {
   box-shadow: 0 1px 4px rgba(0,0,0,0.18);
 }
 .cat-body { padding: 10px 12px 12px; }
-.cat-name { font-size: 13px; font-weight: 800; line-height: 1.3; margin-bottom: 4px; letter-spacing: -0.1px; }
-.cat-sub { font-size: 11px; color: var(--label3); font-weight: 600; }
+.cat-name { font-size: 13px; font-weight: 800; line-height: 1.3; margin-bottom: 6px; letter-spacing: -0.1px; }
+.cat-pills { display: flex; gap: 4px; flex-wrap: wrap; }
+.cat-pills .card-tag {
+  font-size: 9.5px; padding: 3px 7px; border-radius: 6px;
+  letter-spacing: 0.04em;
+}
 
 /* ══════════════════════════
    SCREEN PLANNING
@@ -1707,8 +1697,7 @@ body {
        UNIQUEMENT sur la home (Semaine), pas sur les autres écrans
        qui ont leurs propres titres. -->
   <header class="app-brand">
-    <img src="logo.svg" class="app-brand-logo" alt="OnMangeQuoiMaman?">
-    <span class="app-brand-name">On mange quoi maman<span class="app-brand-q">?</span></span>
+    <img src="logo-mark.svg" class="app-brand-logo" alt="OnMangeQuoiMaman?">
   </header>
   <div class="semaines-scroll" id="semaines-scroll">
     <div class="loader-wrap" id="loader-s">
@@ -1830,6 +1819,19 @@ const KEY = 'sb_publishable_F6CVp39DGvvXpLDekarKQw_8AtDqDvB';
 
 const WM = {'☃️ Semaine 01':1,'⛸️ Semaine 02':2,'❄️ Semaine 03':3,'🧣Semaine 04':4,'🗻 Semaine 05':5,'🌨️ Semaine 06':6,'💨Semaine 07':7,'🐻‍❄️ Semaine 08':8,'🧊Semaine 09':9,'⛷️Semaine 10':10,'🛷Semaine 11':11,'🌤️ Semaine 12':12,'Semaine 13':13,'Semaine 14':14,'Semaine 15':15,'Semaine 16':16,'Semaine 17':17,'Semaine 18':18,'Semaine 19':19,'Semaine 20':20,'Semaine 21':21,'☀️ Semaine 22':22,'🌞 Semaine 23':23,'🏖️ Semaine 24':24,'🌴 Semaine 25':25,'🌊 Semaine 26':26,'🍉 Semaine 27':27,'🌺 Semaine 28':28,'🌻 Semaine 29':29,'🦋 Semaine 30':30,'🐝 Semaine 31':31,'🌸 Semaine 32':32,'🎆 Semaine 33':33,'🌅 Semaine 34':34,'🍓 Semaine 35':35,'🌞 Semaine 36':36,'🌤️ Semaine 37':37,'⛅ Semaine 38':38,'🌥️ Semaine 39':39,'🌧️ Semaine 40':40,'🍂 Semaine 41':41,'🍁 Semaine 42':42,'🍂 Semaine 43':43,'🍁 Semaine 44':44,'🐿️ Semaine 45':45,'🌬️ Semaine 46':46,'🏮 Semaine 47':47,'🍄‍🟫 Semaine 48':48,'🦌 Semaine 49':49,'🧣 Semaine 50':50,'🌲 Semaine 51':51,'🎅 Semaine 52':52};
 const WL = Object.fromEntries(Object.entries(WM).map(([k,v])=>[v,k]));
+
+// Label affichable d'une semaine, SANS l'emoji éventuel du label DB.
+// "☃️ Semaine 01" → "Semaine 01"  ·  Si pas dans WL → "Semaine NN".
+// (WL[w] reste utilisé tel quel pour les écritures DB — on garde la
+//  fidélité aux valeurs historiques côté serveur.)
+function weekLabel(w){
+  const raw = WL[w];
+  if (raw) {
+    const m = raw.match(/Semaine\s*\d+/i);
+    if (m) return m[0];
+  }
+  return 'Semaine ' + String(w).padStart(2, '0');
+}
 
 function isoWeek(d) {
   const dt = new Date(d); dt.setHours(0,0,0,0);
@@ -2228,7 +2230,7 @@ function buildSemaines(){
   const heroMarkup = heroUrl
     ? `<img class="week-hero-img" src="${heroUrl}" loading="lazy">`
     : `<div class="week-hero-img img-placeholder ph-season" style="background:${sm.bgSolid}">${seasonIcon(s,{size:130,stroke:1.2,color:'rgba(255,255,255,0.78)',cls:'ph-icon'})}</div>`;
-  const label=WL[w]||`Semaine ${w}`;
+  const label=weekLabel(w);
 
   // Eyebrow + sub (date)
   let eyebrow, sub;
@@ -2276,13 +2278,13 @@ function buildSemaines(){
         <span class="week-nav-arrow">${icon('arrowLeft',{size:16,stroke:2})}</span>
         <span class="week-nav-label">
           <span class="week-nav-eyebrow">Précédente</span>
-          <span class="week-nav-value">${WL[prevW]||('Sem '+prevW)}</span>
+          <span class="week-nav-value">${weekLabel(prevW)}</span>
         </span>
       </button>
       <button class="week-nav-btn next" onclick="goToWeek(${nextW})">
         <span class="week-nav-label">
           <span class="week-nav-eyebrow">Prochaine</span>
-          <span class="week-nav-value">${WL[nextW]||('Sem '+nextW)}</span>
+          <span class="week-nav-value">${weekLabel(nextW)}</span>
         </span>
         <span class="week-nav-arrow">${icon('arrowRight',{size:16,stroke:2})}</span>
       </button>
@@ -2360,7 +2362,7 @@ function renderCat(items){
   if(!items.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#aaa;font-size:14px;font-weight:600">Aucune recette trouvée</div>';return;}
   g.innerHTML=items.map((r,i)=>{
     const ts=typeStyle(r.type_plat);
-    const av=avisIcon(r.avis);
+    const rs=r.regime?regimeStyle(r.regime):null;
     return`<div class="cat-card" onclick="openSheet('${r.id}')">
       <div class="cat-img-wrap">
         ${imgOrPlaceholder(r, 'cat-img')}
@@ -2368,7 +2370,10 @@ function renderCat(items){
       </div>
       <div class="cat-body">
         <div class="cat-name">${r.titre}</div>
-        <div class="cat-sub" style="color:${ts.color}">${ts.label}${r.regime?' · '+r.regime:''}</div>
+        <div class="cat-pills">
+          <span class="card-tag" style="background:${ts.bg};color:${ts.color}">${ts.label}</span>
+          ${rs?`<span class="card-tag" style="background:${rs.bg};color:${rs.c}">${r.regime}</span>`:''}
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -2379,13 +2384,18 @@ function filterCat(){
   let items=all;
   if(activeFilter==='❤️') items=items.filter(r=>r.avis==='❤️ Coup de coeur');
   else if(activeFilter) items=items.filter(r=>r.regime===activeFilter);
-  // Saison : 'current' = saison de la semaine en cours, sinon nom direct
+  // Saison : 'current' = saison de la semaine en cours, sinon nom direct.
+  // Comparaison normalisée (sans accent, casse ignorée) pour matcher
+  // "Été" / "Eté" / "été" / "ete" indifféremment — les recettes
+  // historiques peuvent avoir des variantes.
   if(activeSeasonFilter){
     let target = activeSeasonFilter;
     if(activeSeasonFilter === 'current'){
       target = saison(isoWeek(new Date()));
     }
-    items = items.filter(r => Array.isArray(r.saison) && r.saison.includes(target));
+    const norm = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+    const targetN = norm(target);
+    items = items.filter(r => Array.isArray(r.saison) && r.saison.some(s => norm(s) === targetN));
   }
   if(q) items=items.filter(r=>r.titre.toLowerCase().includes(q));
   renderCat(items);
@@ -2969,7 +2979,7 @@ function rerenderShopping(){
 function weekPickerHTML(weekVar, options){
   const opts = options || {};
   const w = weekVar;
-  const label = WL[w] || `Semaine ${w}`;
+  const label = weekLabel(w);
   return `<div class="planning-week-picker">
     <button class="planning-week-picker-arrow" onclick="planningWeekShift(-1)" aria-label="Semaine précédente">${icon('arrowLeft',{size:16,stroke:2})}</button>
     <div class="planning-week-picker-current">${label}</div>
@@ -3370,11 +3380,9 @@ function buildShoppingExportText(week){
   }
   if (!entries.length) return '';
   const aggregated = aggregateIngredients(entries);
-  const label = WL[week] || `Semaine ${week}`;
+  const label = weekLabel(week);
   const s = saison(week);
   const sm = SM[s];
-  // Plain-text partagé : on garde les emojis ici car ils s'affichent
-  // dans Messages/Notes/SMS (cibles natives = emoji-friendly).
   let txt = `🛒 Liste de courses\n${label}  ·  ${s}\n`;
   try {
     const range = weekDateRange(new Date().getFullYear(), week);
@@ -3396,7 +3404,7 @@ async function shareShoppingList(){
     alert('Aucun ingrédient à partager pour cette semaine.');
     return;
   }
-  const label = WL[w] || `Semaine ${w}`;
+  const label = weekLabel(w);
   const title = `Liste de courses — ${label}`;
   // Try Web Share API first
   if (navigator.share) {
@@ -3550,7 +3558,7 @@ function buildWeekSheetHTML(w){
   const heroMarkup = heroUrl
     ? `<img class="week-hero-img" src="${heroUrl}" loading="lazy">`
     : `<div class="week-hero-img img-placeholder ph-season" style="background:${sm.bgSolid}">${seasonIcon(s,{size:130,stroke:1.2,color:'rgba(255,255,255,0.78)',cls:'ph-icon'})}</div>`;
-  const label = WL[w] || `Semaine ${w}`;
+  const label = weekLabel(w);
   let eyebrow, sub;
   if (w === cur) {
     eyebrow = 'Cette semaine';
@@ -3590,13 +3598,13 @@ function buildWeekSheetHTML(w){
         <span class="week-nav-arrow">${icon('arrowLeft',{size:16,stroke:2})}</span>
         <span class="week-nav-label">
           <span class="week-nav-eyebrow">Précédente</span>
-          <span class="week-nav-value">${WL[prevW] || ('Sem ' + prevW)}</span>
+          <span class="week-nav-value">${weekLabel(prevW)}</span>
         </span>
       </button>
       <button class="week-nav-btn next" onclick="openWeekSheet(${nextW})">
         <span class="week-nav-label">
           <span class="week-nav-eyebrow">Prochaine</span>
-          <span class="week-nav-value">${WL[nextW] || ('Sem ' + nextW)}</span>
+          <span class="week-nav-value">${weekLabel(nextW)}</span>
         </span>
         <span class="week-nav-arrow">${icon('arrowRight',{size:16,stroke:2})}</span>
       </button>
@@ -3719,7 +3727,7 @@ function renderSuggestions(){
   const recs = suggestionsFor(w, seed);
   let html = weekPickerHTML(w);
   html += `<div class="sugg-intro">
-    Pour <strong>${WL[w] || 'la semaine ' + w}</strong> <span class="sugg-intro-season" style="color:${sm.color}">${seasonIcon(s,{size:14,stroke:2})}<span>${s}</span></span>, voici 5 idées équilibrées (coup de cœur, recettes pas faites récemment, bon régime, etc.).
+    Pour <strong>${weekLabel(w)}</strong> <span class="sugg-intro-season" style="color:${sm.color}">${seasonIcon(s,{size:14,stroke:2})}<span>${s}</span></span>, voici 5 idées équilibrées (coup de cœur, recettes pas faites récemment, bon régime, etc.).
   </div>`;
   html += `<div class="sugg-actions">
     <button class="sugg-action-btn" onclick="suggestionsShuffle()">${icon('sparkles',{size:14,stroke:1.8})}<span>Mélanger</span></button>
@@ -3765,9 +3773,12 @@ function suggestionsShuffle(){
 async function suggestionAddTo(recetteId, week){
   const r = (all || []).find(x => String(x.id) === String(recetteId));
   if (!r) return;
-  const weekLabel = WL[week] || `Semaine ${week}`;
+  // /!\ valeur DB d'origine (préfixe emoji conservé pour cohérence
+  // avec les semaines stockées historiquement). Ne pas confondre avec
+  // weekLabel(w) qui retourne la version SANS emoji pour l'affichage.
+  const weekValue = WL[week] || `Semaine ${week}`;
   const newSemaines = [...(r.semaines || [])];
-  if (!newSemaines.includes(weekLabel)) newSemaines.push(weekLabel);
+  if (!newSemaines.includes(weekValue)) newSemaines.push(weekValue);
   try {
     const res = await fetch(`${SB}/rest/v1/recettes?id=eq.${recetteId}`, {
       method: 'PATCH',
