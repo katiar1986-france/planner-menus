@@ -1020,21 +1020,36 @@ body {
 .year-cell-count {
   font-size: 9px; font-weight: 700; color: var(--label3);
 }
-.year-cell.current { box-shadow: 0 0 0 2px var(--orange), var(--shadow-sm); }
-.year-cell.current .year-cell-num { color: var(--orange); }
+/* Semaine en cours : anneau de la couleur saison correspondante
+   (lue depuis --cell-tint inline sur la cellule). Cohérent avec le
+   reste de l'app, plus d'orange générique. */
+.year-cell.current {
+  box-shadow: 0 0 0 2.5px var(--cell-tint, var(--orange)), var(--shadow-sm);
+}
+.year-cell.current .year-cell-num { color: var(--cell-tint-dark, var(--orange)); }
+/* Banderole de section saison : aplat plein de la couleur saison,
+   icône + nom + badge "13 sem" en blanc (ou foncé sur Été). */
 .year-season-head {
   font-family: var(--f-display);
   font-size: 19px; font-weight: 400;
   letter-spacing: -0.3px;
-  padding: 22px 22px 12px;
+  padding: 12px 18px;
+  margin: 16px 16px 4px;
+  border-radius: 12px;
   display: flex; align-items: center; gap: 10px;
   line-height: 0.95;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 .year-season-head > svg { flex-shrink: 0; }
-.year-season-badge { font-family: var(--f); margin-left: auto; }
 .year-season-badge {
-  font-size: 10px; padding: 2px 8px; border-radius: 10px;
-  font-weight: 800; letter-spacing: 0.05em;
+  font-family: var(--f);
+  margin-left: auto;
+  font-size: 10px; padding: 3px 9px; border-radius: 10px;
+  font-weight: 900; letter-spacing: 0.05em;
+  background: rgba(255,255,255,0.28);
+  color: inherit;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
 
 /* ── Suggestions ── */
@@ -3567,8 +3582,12 @@ function renderYearCalendar(){
   for (const s of seasons) {
     const sm = SM[s.name];
     const isCurrentSeason = s.name === currentName;
-    html += `<div class="year-season-head" style="color:${sm.color}">${seasonIcon(s.name,{size:22,stroke:1.6,color:sm.color})}<span>${s.name}${isCurrentSeason ? ' · maintenant' : ''}</span>
-      <span class="year-season-badge" style="background:${sm.bg};color:${sm.color}">${s.weeks.length} sem</span>
+    // Banderole de section en aplat plein saison : marque visuellement
+    // chaque saison de l'année. Badge intégré transparent blanc.
+    html += `<div class="year-season-head" style="background:${sm.bgSolid};color:${sm.solidText}">
+      ${seasonIcon(s.name,{size:22,stroke:1.8})}
+      <span>${s.name}${isCurrentSeason ? ' · maintenant' : ''}</span>
+      <span class="year-season-badge">${s.weeks.length} sem</span>
     </div>`;
     html += `<div class="year-grid">`;
     for (const w of s.weeks) {
@@ -3584,7 +3603,10 @@ function renderYearCalendar(){
       const imgMarkup = photoUrl
         ? `<img class="year-cell-img" src="${photoUrl}" loading="lazy">`
         : `<div class="year-cell-empty" style="background:${sm.bgSolid}">${seasonIcon(s.name,{size:28,stroke:1.6,color:'rgba(255,255,255,0.85)'})}</div>`;
-      html += `<button class="${cls.join(' ')}" onclick="yearCellClick(${w})">
+      // CSS variables saison sur chaque cellule → le rendu .current
+      // utilise sa propre couleur (pas l'orange générique).
+      const cellVars = `--cell-tint:${sm.bgSolid};--cell-tint-dark:${sm.color}`;
+      html += `<button class="${cls.join(' ')}" style="${cellVars}" onclick="yearCellClick(${w})">
         <div class="year-cell-img-wrap">${imgMarkup}</div>
         <div class="year-cell-body">
           <span class="year-cell-emoji">${emoji}</span>
