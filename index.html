@@ -1010,8 +1010,10 @@ body {
   font-size: 22px;
 }
 .year-cell-body {
-  background: var(--paper-2);
-  padding: 6px 4px; text-align: center;
+  /* Transparent → le body se fond avec le fond pâle saison du
+     year-grid, plus de "rectangle blanc" sous chaque photo. */
+  background: transparent;
+  padding: 6px 4px 4px; text-align: center;
   display: flex; flex-direction: column; align-items: center;
   gap: 1px;
 }
