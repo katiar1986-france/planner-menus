@@ -974,19 +974,20 @@ body {
 
 /* ── Calendrier annuel ── */
 .year-grid {
-  padding: 16px;
+  padding: 8px 16px 12px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 4px;
+  /* gap réduit de 8 à 4px : finit les "contours blancs" visibles
+     (qui étaient en fait le fond paper du screen entre les cards). */
 }
 .year-cell {
-  background: var(--paper-2);
-  border-radius: 14px;
+  background: transparent;  /* plus de bg crème → image colle aux bords */
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
   aspect-ratio: 0.8;
   position: relative;
-  box-shadow: var(--shadow-sm);
   transition: transform 0.12s, box-shadow 0.12s;
 }
 .year-cell:active { transform: scale(0.96); }
@@ -1004,6 +1005,7 @@ body {
   font-size: 22px;
 }
 .year-cell-body {
+  background: var(--paper-2);
   padding: 6px 4px; text-align: center;
   display: flex; flex-direction: column; align-items: center;
   gap: 1px;
