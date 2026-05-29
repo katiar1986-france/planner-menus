@@ -974,12 +974,17 @@ body {
 
 /* ── Calendrier annuel ── */
 .year-grid {
-  padding: 8px 16px 12px;
+  padding: 12px;
+  margin: 0 16px 14px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  /* gap réduit de 8 à 4px : finit les "contours blancs" visibles
-     (qui étaient en fait le fond paper du screen entre les cards). */
+  gap: 10px;
+  border-radius: 0 0 14px 14px;
+  /* Fond saison pâle (rgba via inline style sur le template) → les
+     gaps entre cells montrent du bleu/vert/jaune/terracotta pâle,
+     plus de paper blanc parasite. Radius bottom only : la grille se
+     colle visuellement à la banderole juste au-dessus pour former
+     un seul bloc par saison. */
 }
 .year-cell {
   background: transparent;  /* plus de bg crème → image colle aux bords */
@@ -1036,8 +1041,8 @@ body {
   font-size: 19px; font-weight: 400;
   letter-spacing: -0.3px;
   padding: 12px 18px;
-  margin: 16px 16px 4px;
-  border-radius: 12px;
+  margin: 16px 16px 0;
+  border-radius: 14px 14px 0 0;
   display: flex; align-items: center; gap: 10px;
   line-height: 0.95;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -3591,7 +3596,9 @@ function renderYearCalendar(){
       <span>${s.name}${isCurrentSeason ? ' · maintenant' : ''}</span>
       <span class="year-season-badge">${s.weeks.length} sem</span>
     </div>`;
-    html += `<div class="year-grid">`;
+    // Zone grille en aplat saison pâle (sm.bg = rgba 0.16) →
+    // les gaps entre cells montrent la couleur saison, plus de blanc.
+    html += `<div class="year-grid" style="background:${sm.bg}">`;
     for (const w of s.weeks) {
       const items = bw[w] || [];
       const first = items.find(r => hasOwnPhoto(r)) || items[0];
