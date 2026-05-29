@@ -1307,7 +1307,7 @@ body {
   position: fixed; bottom: 0; left: 50%;
   transform: translateX(-50%) translateY(102%);
   width: 100%; max-width: 430px;
-  background: var(--paper-2);
+  background: var(--paper);
   border-radius: 28px 28px 0 0;
   max-height: 92dvh; overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -1316,6 +1316,18 @@ body {
   will-change: transform;
   box-shadow: 0 -8px 32px rgba(31, 61, 51, 0.20);
 }
+/* Dans le sheet semaine (ouvert depuis Planning → Année), les
+   recipe-cards perdent leur fond paper-2 (presque blanc) et leur
+   shadow. Elles fusionnent avec le fond du sheet → plus de
+   "rectangles blancs" qui ressortent autour de chaque photo. */
+.sheet .recipe-card {
+  background: transparent;
+  box-shadow: none;
+}
+/* Recipes-list dans le sheet : padding-top à 0 pour que la première
+   carte se cale immédiatement sous la photo hero (plus de gap blanc
+   visible entre photo et liste). */
+.sheet .recipes-list { padding-top: 12px; }
 .sheet.open { transform: translateX(-50%) translateY(0); }
 .sheet::-webkit-scrollbar { display: none; }
 
